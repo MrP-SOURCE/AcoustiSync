@@ -155,7 +155,7 @@ if mode == "HOME AUDIO":
                     "the entered Qts is 0.707 or higher. Review the driver data or use "
                     "a different target alignment in a dedicated simulator."
                 )
-            st.write(f"**Ported starting point:** {ported['vb_l']:.1f} L net, approximate Fb {target_fb:.1f} Hz target.")
+            st.write(f"**Ported starting point:** {ported['vb_l']:.1f} L net; rough alignment estimate Fb {ported['fb_hz']:.1f} Hz. The port below is calculated for your selected {target_fb:.1f} Hz tuning target.")
             st.caption("These are screening estimates, not a validated alignment. Final design needs full T/S data (including Qes/Qms, Sd, Pe and excursion), response modelling, and measurement.")
             net = ported["vb_l"]
             gross = net + driver_disp + brace_disp
@@ -198,7 +198,7 @@ else:
             fit_l = max_l*max_h*max_d*1000
             st.write(f"**Subwoofer:** {model} · Fs {fs:.1f} Hz · Qts {qts:.2f} · Vas {vas:.1f} L · Xmax {xmax:.1f} mm.")
             st.write(f"**Preliminary net volume:** {net:.1f} L; gross estimate with 1.5 L allowance: {gross:.1f} L.")
-            st.write(f"**Port:** {port_d:.1f} cm diameter × {length:.1f} cm calculated length for {target_fb:.1f} Hz (before end corrections).")
+            st.write(f"**Port:** {port_d:.1f} cm diameter × {length:.1f} cm calculated length for your {target_fb:.1f} Hz target (before end corrections). Rough alignment Fb estimate: {result['fb_hz']:.1f} Hz.")
             st.write(f"**Available rectangular envelope:** approximately {fit_l:.1f} L gross before taper, wheel arches, trim, and clearance.")
             if gross > fit_l:
                 st.error("The estimated box volume exceeds the rectangular envelope. Recalculate with a smaller alignment or different enclosure approach.")
