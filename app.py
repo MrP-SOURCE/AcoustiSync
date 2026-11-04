@@ -161,7 +161,7 @@ if mode == "HOME AUDIO":
             gross = net + driver_disp + brace_disp
             area = 3.14159 * (port_d/2)**2
             length = port_length_cm(area, net, target_fb)
-            st.write(f"**Port:** {port_d:.1f} cm internal diameter × {length:.1f} cm calculated straight length (before end correction/flare adjustment).")
+            st.write(f"**Port:** {port_d:.1f} cm internal diameter × {length:.1f} cm estimated straight length (includes simplified end correction; verify flare and enclosure effects).")
             st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L after adding driver/bracing displacement.")
             st.write(f"**Air velocity check:** requires amplifier power, Sd, and excursion model; not inferred from T/S values alone. Avoid assuming this port is quiet at high output.")
             st.write(f"**Panel basis:** {wood:.0f} mm material. External rectangular dimensions add {2 * wood:.0f} mm to each corresponding internal dimension.")
@@ -198,7 +198,7 @@ else:
             fit_l = max_l*max_h*max_d*1000
             st.write(f"**Subwoofer:** {model} · Fs {fs:.1f} Hz · Qts {qts:.2f} · Vas {vas:.1f} L · Xmax {xmax:.1f} mm.")
             st.write(f"**Preliminary net volume:** {net:.1f} L; gross estimate with 1.5 L allowance: {gross:.1f} L.")
-            st.write(f"**Port:** {port_d:.1f} cm diameter × {length:.1f} cm calculated length for your {target_fb:.1f} Hz target (before end corrections). Rough alignment Fb estimate: {result['fb_hz']:.1f} Hz.")
+            st.write(f"**Port:** {port_d:.1f} cm diameter × {length:.1f} cm estimated length for your {target_fb:.1f} Hz target (includes simplified end correction). Rough alignment Fb estimate: {result['fb_hz']:.1f} Hz.")
             st.write(f"**Available rectangular envelope:** approximately {fit_l:.1f} L gross before taper, wheel arches, trim, and clearance.")
             if gross > fit_l:
                 st.error("The estimated box volume exceeds the rectangular envelope. Recalculate with a smaller alignment or different enclosure approach.")
