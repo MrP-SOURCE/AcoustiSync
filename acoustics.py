@@ -30,6 +30,13 @@ def room_axial_modes(length_m: float, width_m: float, height_m: float, max_order
             modes.append((axis, n, SPEED_OF_SOUND * n / (2 * dim)))
     return sorted(modes, key=lambda x: x[2])
 
+def sabine_rt60(volume_m3: float, absorption_sabins: float) -> float:
+    """Estimate mid-band reverberation time using Sabine: RT60 = 0.161 V / A."""
+    if volume_m3 <= 0 or absorption_sabins <= 0:
+        raise ValueError("Room volume and equivalent absorption area must be positive.")
+    return 0.161 * volume_m3 / absorption_sabins
+
+
 def estimate_sealed_box(fs_hz: float, qts: float, vas_l: float, target_qtc: float = 0.707):
     """Classic sealed-box approximation: Qtc = Qts*sqrt(1+Vas/Vb)."""
     if fs_hz <= 0 or qts <= 0 or vas_l <= 0 or target_qtc <= qts:
