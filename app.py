@@ -136,6 +136,49 @@ st.caption("Room acoustics  /  Speaker placement  /  Enclosure design")
 mode = st.radio("Choose your audio environment", ["HOME AUDIO", "CAR AUDIO"], horizontal=True)
 st.divider()
 
+def show_equipment_visual(kind, model, detail):
+    """Show a premium category illustration without claiming it is an exact model photo."""
+    import html
+    label = html.escape(str(model or "Selected equipment")[:64])
+    styles = {
+        "floorstander": ("TOWER SPEAKER", "tower"),
+        "bookshelf": ("BOOKSHELF SPEAKER", "bookshelf"),
+        "subwoofer": ("SUBWOOFER DRIVER", "driver"),
+        "sealed_box": ("SEALED ENCLOSURE", "sealed"),
+        "ported_box": ("PORTED ENCLOSURE", "ported"),
+        "component": ("COMPONENT DRIVER", "driver"),
+    }
+    title, shape = styles.get(kind, ("AUDIO EQUIPMENT", "tower"))
+    if shape == "driver":
+        drawing = '<circle cx="150" cy="110" r="83" fill="#71899b" stroke="#c4d3df" stroke-width="4"/><circle cx="150" cy="110" r="68" fill="#101a25" stroke="#425b6d" stroke-width="8"/><circle cx="150" cy="110" r="48" fill="#526a7a" stroke="#9aafc2" stroke-width="3"/><circle cx="150" cy="110" r="20" fill="#182632" stroke="#aabac6" stroke-width="3"/>'
+    elif shape in ("sealed", "ported"):
+        port = '<rect x="177" y="140" width="20" height="58" rx="8" fill="#070d13" stroke="#9aafc2" stroke-width="3"/>' if shape == "ported" else ""
+        drawing = f'<rect x="88" y="18" width="124" height="184" rx="9" fill="#182632" stroke="#8ba0af" stroke-width="3"/><circle cx="150" cy="83" r="39" fill="#526a7a" stroke="#b8c7d1" stroke-width="3"/><circle cx="150" cy="83" r="15" fill="#17232d"/>{port}'
+    else:
+        h = 178 if shape == "tower" else 132
+        y = 20 if shape == "tower" else 48
+        r = 28 if shape == "tower" else 25
+        drawing = f'<rect x="104" y="{y}" width="92" height="{h}" rx="8" fill="#182632" stroke="#8ba0af" stroke-width="3"/><circle cx="150" cy="{y+38}" r="13" fill="#91a6b5" stroke="#d2e0e8" stroke-width="2"/><circle cx="150" cy="{y+105}" r="{r}" fill="#263b49" stroke="#9aafc2" stroke-width="3"/><circle cx="150" cy="{y+105}" r="12" fill="#91a6b5"/>'
+    st.markdown(f"""
+    <div style="display:flex;align-items:center;gap:16px;padding:12px 16px;border:1px solid #26384a;border-radius:14px;background:linear-gradient(135deg,#142231,#0d1722);margin:.4rem 0 1rem">
+      <div style="width:180px;max-width:40%;flex-shrink:0">
+        <svg viewBox="0 0 300 230" style="width:100%;height:auto" role="img" aria-label="{title}">
+          <defs><linearGradient id="premium-metal" x2="1" y2="1"><stop stop-color="#dce7ef"/><stop offset=".45" stop-color="#526a7a"/><stop offset="1" stop-color="#111b27"/></linearGradient></defs>
+          <ellipse cx="150" cy="211" rx="88" ry="8" fill="#02070b" opacity=".7"/>
+          {drawing}
+          <path d="M20 12 H280" stroke="#36c5e8" stroke-opacity=".5"/>
+        </svg>
+      </div>
+      <div style="min-width:0">
+        <div style="font-size:.65rem;letter-spacing:.18em;font-weight:700;color:#36c5e8">{title}</div>
+        <div style="font-size:1rem;font-weight:700;color:#e8f0f7;margin:.3rem 0">{label}</div>
+        <div style="font-size:.78rem;color:#9aafc2;line-height:1.45">{html.escape(detail)}</div>
+        <div style="font-size:.66rem;color:#7890a2;margin-top:.45rem">Representative category illustration · not an exact model photograph</div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def calculate_subwoofer_positions(room_l, room_w, front_wall_m, side_wall_m, sub_count):
     """Return geometric starting coordinates for subwoofer placement screening."""
     front_offset = min(max(front_wall_m, 0.18), max(0.18, room_l * 0.20))
@@ -301,7 +344,7 @@ if mode == "HOME AUDIO":
             sub_count = st.selectbox("Number of subwoofers to screen", [0, 1, 2, 4], index=0,
                                      format_func=lambda n: "No subwoofer" if n == 0 else str(n))
             compromised = st.checkbox("Compromised setup: speakers cannot be moved far from walls")
-        st.markdown("Room boundaries")
+        speaker_kind = "bookshelf" if any(word in speakers.lower() for word in ("bookshelf", "standmount", "monitor")) else "floorstander"\n        show_equipment_visual(speaker_kind, speakers, "Premium reference visual for this speaker category. Placement is calculated from your room measurements.")\n        st.markdown("Room boundaries")
         walls = st.selectbox("Wall construction", ["Brick / concrete", "Plasterboard / hollow wall", "Mixed"])
         floor_type = st.selectbox("Floor finish", ["Carpet", "Wood / tile", "Thick rug"])
         ceiling_type = st.selectbox("Ceiling finish", ["Plaster / concrete", "Acoustic ceiling"])
@@ -395,7 +438,7 @@ if mode == "HOME AUDIO":
         if st.button("Look up driver"):
             record = lookup_driver(model)
             st.session_state["driver_lookup"] = record
-        rec = st.session_state.get("driver_lookup", lookup_driver(""))
+        rec = st.session_state.get("driver_lookup", lookup_driver(""))\n        show_equipment_visual("subwoofer", model, "Premium reference visual for a home DIY subwoofer driver. Enter exact datasheet values for calculations.")
         if rec and rec.get("found"):
             st.success(f"Demo catalogue match: {rec['model']} — values are illustrative, not verified manufacturer data.")
         else:
@@ -415,7 +458,7 @@ if mode == "HOME AUDIO":
             submitted = st.form_submit_button("Design enclosure", type="primary")
         if submitted:
             ported = estimate_ported_box(fs, qts, vas)
-            st.subheader("Initial alignment estimates")
+            st.subheader("Initial alignment estimates")\n            v1, v2 = st.columns(2)\n            with v1:\n                show_equipment_visual("sealed_box", f"{model} · sealed", "Conceptual sealed enclosure.")\n            with v2:\n                show_equipment_visual("ported_box", f"{model} · ported", "Conceptual ported enclosure with visible port opening.")
             st.write(
                 f"**Driver inputs:** {model} · Fs {fs:.1f} Hz · Qts {qts:.2f} · "
                 f"Vas {vas:.1f} L · Re {re:.1f} Ω · Xmax {xmax:.1f} mm."
@@ -489,7 +532,7 @@ else:
         st.subheader("Car component placement")
         st.caption("Choose the options that match your vehicle and speaker installation.")
         speaker = st.text_input("Component speaker model", "Component 6.5-inch set")
-        tweeter = st.selectbox("Tweeter location", ["A-pillar", "Dash", "Sail panel", "Factory location"])
+        tweeter = st.selectbox("Tweeter location", ["A-pillar", "Dash", "Sail panel", "Factory location"])\n        show_equipment_visual("component", speaker, "Representative component-driver visual. Midbass and tweeter remain separate installation components.")
         driver_side = st.selectbox("Driver position", ["Left-hand drive", "Right-hand drive"], index=1)
         if st.button("Generate staging advice", type="primary"):
             st.write(f"For {speaker}, begin with tweeters at {tweeter.lower()} and aim them for a controlled comparison rather than assuming on-axis is always best.")
