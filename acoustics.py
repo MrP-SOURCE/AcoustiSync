@@ -55,14 +55,14 @@ def estimate_ported_box(fs_hz: float, qts: float, vas_l: float):
     fb = fs_hz * (0.42 / max(qts, 0.2)) ** 0.35
     return {"vb_l": vb, "fb_hz": fb, "alignment": "rough screening estimate"}
 
-def port_length_cm(area_cm2: float, vb_l: float, fb_hz: float, end_correction_cm: float = 1.46):
-    """Helmholtz approximation: Lv(cm)=((23562.5*A)/(Fb^2*Vb))-k*sqrt(A)."""
+def port_length_cm(area_cm2: float, vb_l: float, fb_hz: float, end_correction_factor: float = 0.732):
+    """Round-port estimate in cm; end_correction_factor multiplies port diameter."""
     if area_cm2 <= 0 or vb_l <= 0 or fb_hz <= 0:
         raise ValueError("Port area, box volume and tuning frequency must be positive.")
     # Convert area to equivalent round-port diameter, then apply the standard
     # diameter-based approximation. 23562.5 assumes D in cm and Vb in litres.
     diameter_cm = math.sqrt(4.0 * area_cm2 / math.pi)
-    length = (23562.5 * diameter_cm**2 / (fb_hz**2 * vb_l)) - end_correction_cm * diameter_cm
+    length = (23562.5 * diameter_cm**2 / (fb_hz**2 * vb_l)) - end_correction_factor * diameter_cm
     return max(0.0, length)
 
 def port_velocity(power_w: float, sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
