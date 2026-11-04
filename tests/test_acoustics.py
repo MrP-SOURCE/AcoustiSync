@@ -9,6 +9,7 @@ from acoustics import (
     port_length_cm,
     placement_guidance,
     room_axial_modes,
+    sabine_rt60,
     wavelength,
 )
 
@@ -65,3 +66,14 @@ def test_unknown_driver_is_not_marked_found():
 def test_placement_guidance_mentions_measurement():
     result = placement_guidance(0.4, 0.5, 2.5, False, "Music")
     assert "Measure bass response" in result
+
+
+
+def test_sabine_rt60_uses_volume_and_absorption_area():
+    assert sabine_rt60(50.0, 10.0) == pytest.approx(0.805)
+
+
+@pytest.mark.parametrize("volume, absorption", [(0, 10), (10, 0), (-1, 2), (2, -1)])
+def test_sabine_rt60_rejects_nonpositive_inputs(volume, absorption):
+    with pytest.raises(ValueError):
+        sabine_rt60(volume, absorption)
