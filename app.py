@@ -56,6 +56,7 @@ if mode == "HOME AUDIO":
     task = st.radio("Home audio workflow", ["Finished speaker setup", "Driver-in-hand / DIY enclosure"], horizontal=True)
     if task == "Finished speaker setup":
         st.subheader("Finished speaker placement")
+        st.caption("Change the measurements below to match your own room. Starting values are examples, not locked settings.")
         c1, c2 = st.columns(2)
         with c1:
             speakers = st.text_input("Speaker model", "Mission floorstanders")
@@ -82,9 +83,12 @@ if mode == "HOME AUDIO":
         if st.button("Calculate placement plan", type="primary"):
             st.write(f"**System:** {speakers} with {amp}. Use case: {use_case}.")
             st.write(placement_guidance(front_wall, side_wall, listening_distance, compromised, use_case))
-            st.write("**Room axial-mode estimates (Hz)**")
+            st.subheader("What this means in your room")
+            st.write("The room dimensions and speaker distances you entered are used for these estimates. Change the measurements above and calculate again to compare options.")
             modes = room_axial_modes(room_l, room_w, room_h)
-            st.dataframe([{"Axis": a, "Mode": n, "Frequency (Hz)": round(f, 1)} for a,n,f in modes], use_container_width=True)
+            st.markdown("**Possible bass build-up points**")
+            st.caption("These are frequencies where the room may make bass sound louder or quieter in certain places. They are not faults in the speakers.")
+            st.dataframe([{"Room direction": a, "Pattern": f"Mode {n}", "Possible bass frequency": f"{f:.1f} Hz"} for a,n,f in modes[:6]], use_container_width=True, hide_index=True)
             wall_alpha = {"Brick / concrete": 0.03, "Plasterboard / hollow wall": 0.05, "Mixed": 0.04}[walls]
             floor_alpha = {"Carpet": 0.25, "Wood / tile": 0.05, "Thick rug": 0.35}[floor_type]
             ceiling_alpha = {"Plaster / concrete": 0.05, "Acoustic ceiling": 0.55}[ceiling_type]
@@ -97,18 +101,25 @@ if mode == "HOME AUDIO":
                 + furniture_sabins
             )
             rt60 = sabine_rt60(room_l * room_w * room_h, absorption_sabins)
-            st.write(f"**Estimated RT60 (Sabine, mid-frequency screening):** {rt60:.2f} seconds.")
+            st.write(f"**Estimated room echo time: {rt60:.2f} seconds**")
+            if rt60 < 0.3:
+                st.success("Plain meaning: this estimate suggests a fairly controlled room with relatively little lingering sound.")
+            elif rt60 < 0.6:
+                st.info("Plain meaning: this estimate suggests a moderate amount of room echo. Whether it sounds right depends on room size, furnishings and preference.")
+            else:
+                st.warning("Plain meaning: this estimate suggests sound may linger noticeably. Soft furnishings, rugs or curtains may help, depending on the actual room.")
             st.caption(
                 f"Estimated equivalent absorption: {absorption_sabins:.1f} Sabins. "
                 "Material coefficients are broad assumptions; this is not a measured RT60."
             )
-            st.write("**3D room-mode pressure field**")
-            draw_mode_field_3d(room_l, room_w, room_h, mode_axis, mode_order)
-            st.caption("Idealised axial-mode distribution only; real rooms include damping, boundary effects and coupled modes.")
-            st.write("**Room layout (illustrative, not a measured acoustic model)**")
+            with st.expander("Technical view: 3D room-mode model"):
+                draw_mode_field_3d(room_l, room_w, room_h, mode_axis, mode_order)
+                st.caption("This colour plot is a simplified pressure pattern, not a measured sound map. Red and blue indicate opposite pressure phases; neither means good or bad.")
+            st.markdown("**Suggested starting layout**")
+            st.caption("The drawing shows approximate positions only. It is a planning aid, not a scale-accurate installation drawing.")
             sx, sy = max(.1, front_wall), max(.1, side_wall)
             draw_room(room_l, room_w, sx, sy, min(room_l-.2, listening_distance+front_wall), room_w/2)
-            st.info("SBIR and boundary gain depend on driver geometry, radiation pattern, wall impedance, and exact room layout. Treat these distances as starting points; confirm with measurements/REW and adjust by listening.")
+            st.info("**In practical terms:** start with the suggested positions, listen for uneven bass or a weak centre image, then move speakers in small steps. The calculation cannot hear your room. A microphone measurement is needed for a reliable final adjustment.")
             if compromised:
                 st.write("- Try the manufacturer's foam port plug if the speaker has a rear port.")
                 st.write("- Avoid placing the listening seat exactly halfway between front and rear walls.")
@@ -117,6 +128,7 @@ if mode == "HOME AUDIO":
             st.caption(f"Speed of sound assumed 343 m/s. At 80 Hz, wavelength ≈ {wavelength(80):.2f} m.")
     else:
         st.subheader("Home DIY enclosure calculator")
+        st.caption("All inputs can be edited. Enter the figures from your driver datasheet; starting values are examples only.")
         model = st.text_input("Driver model", "Mission Subwoofer Driver")
         if st.button("Look up driver"):
             record = lookup_driver(model)
@@ -148,20 +160,23 @@ if mode == "HOME AUDIO":
             )
             try:
                 sealed = estimate_sealed_box(fs, qts, vas)
-                st.write(f"**Suggested sealed starting point:** {sealed['vb_l']:.1f} L net, estimated Qtc {sealed['qtc']:.2f}.")
+                st.write(f"**Sealed box starting estimate: {sealed['vb_l']:.1f} litres of usable internal space.**")
+                st.caption(f"Estimated damping factor (Qtc): {sealed['qtc']:.2f}. This is a technical design value, not a sound-quality score.")
             except ValueError:
                 st.warning(
                     "A sealed alignment targeting Qtc 0.707 cannot be calculated when "
                     "the entered Qts is 0.707 or higher. Review the driver data or use "
                     "a different target alignment in a dedicated simulator."
                 )
-            st.write(f"**Ported starting point:** {ported['vb_l']:.1f} L net; rough alignment estimate Fb {ported['fb_hz']:.1f} Hz. The port below is calculated for your selected {target_fb:.1f} Hz tuning target.")
+            st.write(f"**Ported box starting estimate: {ported['vb_l']:.1f} litres of usable internal space.**")
+            st.caption(f"The rough model tuning estimate is {ported['fb_hz']:.1f} Hz. The port dimensions below use your selected target of {target_fb:.1f} Hz.")
             st.caption("These are screening estimates, not a validated alignment. Final design needs full T/S data (including Qes/Qms, Sd, Pe and excursion), response modelling, and measurement.")
             net = ported["vb_l"]
             gross = net + driver_disp + brace_disp
             area = 3.14159 * (port_d/2)**2
             length = port_length_cm(area, net, target_fb)
-            st.write(f"**Port:** {port_d:.1f} cm internal diameter × {length:.1f} cm estimated straight length (includes simplified end correction; verify flare and enclosure effects).")
+            st.write(f"**Port tube starting size: {port_d:.1f} cm inside diameter and approximately {length:.1f} cm long.**")
+            st.caption("The port is the air tube in the box. Its size affects bass tuning. Final length may need adjustment for flares, bends and the actual box.")
             st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L after adding driver/bracing displacement.")
             st.write(f"**Air velocity check:** requires amplifier power, Sd, and excursion model; not inferred from T/S values alone. Avoid assuming this port is quiet at high output.")
             st.write(f"**Panel basis:** {wood:.0f} mm material. External rectangular dimensions add {2 * wood:.0f} mm to each corresponding internal dimension.")
@@ -172,6 +187,7 @@ else:
     task = st.radio("Car audio workflow", ["Subwoofer enclosure builder", "Component speaker placement"], horizontal=True)
     if task == "Subwoofer enclosure builder":
         st.subheader("Car subwoofer enclosure builder")
+        st.caption("Change the vehicle space and subwoofer measurements to match your own installation. Starting values are examples only.")
         c1,c2 = st.columns(2)
         with c1:
             model = st.text_input("Subwoofer model", "Example 12-inch subwoofer")
@@ -197,8 +213,9 @@ else:
             max_d = trunk_d/100
             fit_l = max_l*max_h*max_d*1000
             st.write(f"**Subwoofer:** {model} · Fs {fs:.1f} Hz · Qts {qts:.2f} · Vas {vas:.1f} L · Xmax {xmax:.1f} mm.")
-            st.write(f"**Preliminary net volume:** {net:.1f} L; gross estimate with 1.5 L allowance: {gross:.1f} L.")
-            st.write(f"**Port:** {port_d:.1f} cm diameter × {length:.1f} cm estimated length for your {target_fb:.1f} Hz target (includes simplified end correction). Rough alignment Fb estimate: {result['fb_hz']:.1f} Hz.")
+            st.write(f"**Estimated usable box space: {net:.1f} litres.** Allowing 1.5 litres for the driver and internal parts gives an estimated gross requirement of {gross:.1f} litres.")
+            st.write(f"**Port tube starting size: {port_d:.1f} cm diameter × {length:.1f} cm long**, estimated for your selected {target_fb:.1f} Hz target.")
+            st.caption(f"The simplified driver model estimates a tuning point near {result['fb_hz']:.1f} Hz before applying your selected port target.")
             st.write(f"**Available rectangular envelope:** approximately {fit_l:.1f} L gross before taper, wheel arches, trim, and clearance.")
             if gross > fit_l:
                 st.error("The estimated box volume exceeds the rectangular envelope. Recalculate with a smaller alignment or different enclosure approach.")
@@ -208,6 +225,7 @@ else:
             st.warning("Port air speed/chuffing cannot be checked reliably without amplifier power, driver Sd, excursion and a defined signal/model. Use a flare and adequate port area; verify with modelling and measurement.")
     else:
         st.subheader("Car component placement")
+        st.caption("Choose the options that match your vehicle and speaker installation.")
         speaker = st.text_input("Component speaker model", "Component 6.5-inch set")
         tweeter = st.selectbox("Tweeter location", ["A-pillar", "Dash", "Sail panel", "Factory location"])
         driver_side = st.selectbox("Driver position", ["Left-hand drive", "Right-hand drive"], index=1)
