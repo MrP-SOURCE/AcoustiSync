@@ -12,18 +12,100 @@ st.caption("Audio setup assistant • Room acoustics • DIY enclosure design")
 mode = st.radio("Choose your audio environment", ["HOME AUDIO", "CAR AUDIO"], horizontal=True)
 st.divider()
 
-def draw_room(room_l, room_w, sx, sy, lx, ly):
-    fig, ax = plt.subplots(figsize=(7, 4.5))
-    ax.set_xlim(0, room_l); ax.set_ylim(0, room_w)
+def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m):
+    """Draw a dimensionally scaled top-down plan using the entered room measurements."""
+    fig, ax = plt.subplots(figsize=(7.2, 6.2))
     ax.set_aspect("equal", adjustable="box")
-    ax.add_patch(plt.Rectangle((0, 0), room_l, room_w, fill=False, linewidth=2))
-    ax.scatter([sx], [sy], marker="s", s=100, label="Left speaker")
-    ax.scatter([min(room_l-0.1, sx+1.2)], [sy], marker="s", s=100, label="Right speaker (illustrative)")
-    ax.scatter([lx], [ly], marker="o", s=110, label="Listening position")
-    ax.set_xlabel("Room length (m)"); ax.set_ylabel("Room width (m)")
-    ax.grid(True, alpha=.25); ax.legend(loc="upper right")
-    st.pyplot(fig)
+    ax.set_xlim(-0.55, room_w + 0.35)
+    ax.set_ylim(-0.55, room_l + 0.55)
+
+    # Room outline: width is the horizontal axis; length is the vertical axis.
+    ax.add_patch(plt.Rectangle((0, 0), room_w, room_l, fill=False,
+                               edgecolor="black", linewidth=2.2))
+    ax.text(room_w / 2, room_l + 0.38, f"BACK WALL  •  {room_w:.2f} m wide",
+            ha="center", va="center", fontsize=8)
+    ax.text(room_w / 2, -0.34, "FRONT WALL", ha="center", va="center",
+            fontsize=8, weight="bold")
+
+    # Keep the plan physically inside the room if a requested wall clearance
+    # cannot fit; show the effective clearance used in the drawing.
+    effective_side = min(max(0.12, side_wall_m), max(0.12, (room_w - 0.28) / 2))
+    effective_front = min(max(0.12, front_wall_m), max(0.12, room_l - 0.55))
+    speaker_y = effective_front
+    left_x, right_x = effective_side, room_w - effective_side
+
+    # Small top-down speaker cabinet icons. The two drivers are decorative
+    # symbols; cabinet positions are plotted at their calculated coordinates.
+    cabinet_w, cabinet_d = 0.22, 0.30
+    for x, label in ((left_x, "LEFT"), (right_x, "RIGHT")):
+        ax.add_patch(plt.Rectangle((x - cabinet_w / 2, speaker_y - cabinet_d / 2),
+                                   cabinet_w, cabinet_d, facecolor="#dce7f2",
+                                   edgecolor="#24445f", linewidth=1.4, zorder=4))
+        ax.add_patch(plt.Circle((x, speaker_y + 0.055), 0.047,
+                                facecolor="#6c8297", edgecolor="#20384d",
+                                linewidth=0.8, zorder=5))
+        ax.add_patch(plt.Circle((x, speaker_y - 0.075), 0.025,
+                                facecolor="#6c8297", edgecolor="#20384d",
+                                linewidth=0.8, zorder=5))
+        ax.text(x, speaker_y + 0.22, f"{label} SPEAKER",
+                ha="center", va="bottom", fontsize=7, weight="bold")
+
+    requested_listener_y = speaker_y + listening_distance_m
+    listener_y = min(requested_listener_y, room_l - 0.45)
+    listener_y = max(speaker_y + 0.35, listener_y)
+    listener_x = room_w / 2
+    if listener_y > speaker_y:
+        ax.annotate("", xy=(listener_x, listener_y), xytext=(listener_x, speaker_y),
+                    arrowprops=dict(arrowstyle="<->", color="#536b80", lw=1.1))
+        ax.text(listener_x + 0.10, (listener_y + speaker_y) / 2,
+                f"{listener_y - speaker_y:.2f} m",
+                fontsize=7, va="center", color="#34495e")
+
+    # Listening seat icon.
+    seat_w, seat_d = min(0.95, room_w * 0.42), 0.38
+    ax.add_patch(plt.Rectangle((listener_x - seat_w / 2, listener_y - seat_d / 2),
+                               seat_w, seat_d, facecolor="#eee4d5",
+                               edgecolor="#735f48", linewidth=1.3, zorder=3))
+    ax.text(listener_x, listener_y, "LISTENING POSITION",
+            ha="center", va="center", fontsize=6.5, zorder=6)
+
+    # Dimension lines and labels.
+    ax.annotate("", xy=(0, room_l + 0.15), xytext=(room_w, room_l + 0.15),
+                arrowprops=dict(arrowstyle="<->", color="#333333", lw=1))
+    ax.text(room_w / 2, room_l + 0.19, f"{room_w:.2f} m",
+            ha="center", va="bottom", fontsize=8)
+    ax.annotate("", xy=(-0.22, 0), xytext=(-0.22, room_l),
+                arrowprops=dict(arrowstyle="<->", color="#333333", lw=1))
+    ax.text(-0.29, room_l / 2, f"{room_l:.2f} m",
+            ha="center", va="center", rotation=90, fontsize=8)
+
+    # Speaker separation is an actual coordinate-derived measurement.
+    ax.annotate("", xy=(left_x, speaker_y - 0.25),
+                xytext=(right_x, speaker_y - 0.25),
+                arrowprops=dict(arrowstyle="<->", color="#536b80", lw=1))
+    ax.text(room_w / 2, speaker_y - 0.29, f"Speaker separation: {right_x-left_x:.2f} m",
+            ha="center", va="top", fontsize=7, color="#34495e")
+
+    ax.set_xlabel("Room width (m)")
+    ax.set_ylabel("Room length (m)")
+    ax.set_xticks(np.arange(0, room_w + 0.01, 0.5))
+    ax.set_yticks(np.arange(0, room_l + 0.01, 0.5))
+    ax.grid(True, alpha=.18, linewidth=0.5)
+    ax.set_title("Scaled top-down room plan", fontsize=10, pad=12)
+    st.pyplot(fig, use_container_width=True)
     plt.close(fig)
+
+    if requested_listener_y > room_l - 0.45:
+        st.warning(
+            f"The requested {listening_distance_m:.2f} m listening distance does not fit "
+            "inside this room with clearance behind the seat. The drawing places the seat "
+            "at the nearest practical position; increase room length or reduce the distance."
+        )
+    if effective_side != side_wall_m or effective_front != front_wall_m:
+        st.caption(
+            "A requested wall clearance was constrained to keep the speaker icons inside "
+            "the measured room boundary. Check the displayed positions before installation."
+        )
 
 
 def draw_mode_field_3d(room_l, room_w, room_h, axis, order):
@@ -116,9 +198,12 @@ if mode == "HOME AUDIO":
                 draw_mode_field_3d(room_l, room_w, room_h, mode_axis, mode_order)
                 st.caption("This colour plot is a simplified pressure pattern, not a measured sound map. Red and blue indicate opposite pressure phases; neither means good or bad.")
             st.markdown("**Suggested starting layout**")
-            st.caption("The drawing shows approximate positions only. It is a planning aid, not a scale-accurate installation drawing.")
-            sx, sy = max(.1, front_wall), max(.1, side_wall)
-            draw_room(room_l, room_w, sx, sy, min(room_l-.2, listening_distance+front_wall), room_w/2)
+            st.caption(
+                f"Scaled to the room dimensions entered above: {room_w:.2f} m wide × "
+                f"{room_l:.2f} m long × {room_h:.2f} m high. Speaker and seat symbols "
+                "show calculated plan positions, not the physical cabinet dimensions."
+            )
+            draw_room(room_l, room_w, front_wall, side_wall, listening_distance)
             st.info("**In practical terms:** start with the suggested positions, listen for uneven bass or a weak centre image, then move speakers in small steps. The calculation cannot hear your room. A microphone measurement is needed for a reliable final adjustment.")
             if compromised:
                 st.write("- Try the manufacturer's foam port plug if the speaker has a rear port.")
