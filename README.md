@@ -36,6 +36,26 @@ Driver catalogue entries are illustrative and are not verified manufacturer spec
 
 Do not cut enclosure panels or apply aggressive EQ solely from these preliminary estimates.
 
+## Public deployment (release target)
+
+The app is a Python/Streamlit application; GitHub Pages and a plain Cloudflare Worker cannot run this Python entrypoint directly. The intended no-cost first deployment is Streamlit Community Cloud.
+
+Deployment coordinates:
+- Repository: `MrP-SOURCE/AcoustiSync`
+- Branch: `main`
+- Entrypoint: `app.py`
+- Dependencies: root `requirements.txt`
+- Python: select Python 3.11 in Advanced settings to match CI.
+
+Release procedure:
+1. Sign in to Streamlit Community Cloud with the GitHub account that has admin access to this repository.
+2. Create an app and select the repository, `main`, and `app.py`.
+3. Choose an available public app subdomain.
+4. Set the app visibility to public when ready for public distribution.
+5. Wait for the build to complete, then test both HOME AUDIO and CAR AUDIO workflows on the hosted URL.
+
+Community Cloud needs GitHub authorisation to access a private repository. Keep the repository private until the app has passed release checks; review the requested GitHub permissions before approving access. A public app must be explicitly made public in its sharing settings.
+
 ## Deployment status
 
 The source and automated checks are in active verification. A public deployment should only be announced after the latest CI run, deployment configuration, and live application smoke test have passed.
