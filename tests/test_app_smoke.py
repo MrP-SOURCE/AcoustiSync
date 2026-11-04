@@ -32,3 +32,12 @@ def test_car_component_placement_runs():
     app.radio[1].set_value("Component speaker placement").run()
     app.button[0].click().run()
     assert not app.exception
+
+
+def test_home_diy_high_qts_is_handled_without_app_crash():
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    app.radio[1].set_value("Driver-in-hand / DIY enclosure").run()
+    app.number_input[1].set_value(0.9)
+    app.button[1].click().run()
+    assert not app.exception
+    assert any("Qtc 0.707" in warning.value for warning in app.warning)
