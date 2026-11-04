@@ -37,7 +37,8 @@ def test_car_component_placement_runs():
 def test_home_diy_high_qts_is_handled_without_app_crash():
     app = AppTest.from_file(APP_PATH, default_timeout=15).run()
     app.radio[1].set_value("Driver-in-hand / DIY enclosure").run()
-    app.number_input[1].set_value(0.9)
+    qts_input = next(item for item in app.number_input if item.label == "Qts")
+    qts_input.set_value(0.9)
     app.button[1].click().run()
     assert not app.exception
     assert any("Qtc 0.707" in warning.value for warning in app.warning)
