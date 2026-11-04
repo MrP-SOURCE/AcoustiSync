@@ -27,7 +27,7 @@ def calculate_subwoofer_positions(room_l, room_w, front_wall_m, side_wall_m, sub
 
 def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, subwoofer_positions=None):
     """Draw a dimensionally scaled top-down plan using the entered room measurements."""
-    fig, ax = plt.subplots(figsize=(7.2, 6.2))
+    fig, ax = plt.subplots(figsize=(5.2, 4.5), constrained_layout=True)
     ax.set_aspect("equal", adjustable="box")
     ax.set_xlim(-0.55, room_w + 0.35)
     ax.set_ylim(-0.55, room_l + 0.55)
@@ -115,7 +115,7 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
     ax.set_yticks(np.arange(0, room_l + 0.01, 0.5))
     ax.grid(True, alpha=.18, linewidth=0.5)
     ax.set_title("Scaled top-down room plan", fontsize=10, pad=12)
-    st.pyplot(fig, use_container_width=True)
+    st.pyplot(fig, use_container_width=False)
     plt.close(fig)
 
     if requested_listener_y > room_l - 0.45:
@@ -141,7 +141,7 @@ def draw_mode_field_3d(room_l, room_w, room_h, axis, order):
     coordinate = {"Length": xx, "Width": yy, "Height": zz}[axis]
     pressure = np.cos(order * np.pi * coordinate / dimension)
 
-    fig = plt.figure(figsize=(8, 5))
+    fig = plt.figure(figsize=(6.0, 3.8), constrained_layout=True)
     ax = fig.add_subplot(111, projection="3d")
     points = ax.scatter(
         xx.ravel(), yy.ravel(), zz.ravel(),
@@ -153,7 +153,7 @@ def draw_mode_field_3d(room_l, room_w, room_h, axis, order):
     ax.set_zlabel("Height (m)")
     ax.set_title(f"Ideal {axis.lower()} axial mode {order}")
     fig.colorbar(points, ax=ax, shrink=0.65, label="Relative pressure")
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=False)
     plt.close(fig)
 
 
