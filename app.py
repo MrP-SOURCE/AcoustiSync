@@ -7,8 +7,132 @@ from acoustics import (
 )
 
 st.set_page_config(page_title="AcoustiSync", page_icon="🔊", layout="wide")
+st.markdown("""
+<style>
+:root {
+  --as-bg: #0a1018;
+  --as-panel: #111b27;
+  --as-panel-2: #162332;
+  --as-line: #26384a;
+  --as-text: #e8f0f7;
+  --as-muted: #9aafc2;
+  --as-accent: #36c5e8;
+  --as-accent-soft: rgba(54, 197, 232, .12);
+}
+.stApp {
+  background:
+    radial-gradient(ellipse at 50% -18%, rgba(28, 94, 125, .22), transparent 48%),
+    var(--as-bg);
+  color: var(--as-text);
+}
+[data-testid="stHeader"] { background: rgba(10, 16, 24, .82); }
+[data-testid="stAppViewContainer"] > .main .block-container {
+  max-width: 1440px;
+  padding-top: 2.1rem;
+  padding-bottom: 3rem;
+}
+h1, h2, h3 {
+  color: var(--as-text) !important;
+  letter-spacing: -0.035em;
+}
+h1 {
+  font-weight: 750 !important;
+  letter-spacing: -0.055em !important;
+}
+h2, h3 { font-weight: 650 !important; }
+p, label, [data-testid="stMarkdownContainer"] {
+  color: var(--as-text);
+}
+.stCaption, [data-testid="stCaptionContainer"] {
+  color: var(--as-muted) !important;
+}
+hr { border-color: var(--as-line) !important; }
+div[data-testid="stVerticalBlockBorderWrapper"],
+div[data-testid="stForm"] {
+  background: linear-gradient(145deg, rgba(20, 32, 45, .94), rgba(14, 23, 33, .94));
+  border: 1px solid var(--as-line);
+  border-radius: 14px;
+}
+div[data-testid="stTextInput"] input,
+div[data-testid="stNumberInput"] input,
+div[data-testid="stSelectbox"] > div > div,
+div[data-testid="stMultiSelect"] > div > div {
+  background: #101a25;
+  border-color: #30465a;
+  border-radius: 9px;
+}
+div[data-testid="stTextInput"] input:focus,
+div[data-testid="stNumberInput"] input:focus {
+  border-color: var(--as-accent);
+  box-shadow: 0 0 0 1px var(--as-accent);
+}
+div[role="radiogroup"] {
+  gap: .45rem;
+}
+div[role="radiogroup"] label {
+  background: #111d29;
+  border: 1px solid #2b4053;
+  border-radius: 9px;
+  padding: .38rem .8rem;
+}
+div[role="radiogroup"] label:has(input:checked) {
+  background: var(--as-accent-soft);
+  border-color: var(--as-accent);
+}
+.stButton > button, [data-testid="stFormSubmitButton"] button {
+  background: linear-gradient(110deg, #087eaa, #16a9c7);
+  color: #f7fcff;
+  border: 1px solid rgba(91, 220, 245, .45);
+  border-radius: 9px;
+  font-weight: 650;
+  min-height: 2.65rem;
+  transition: filter .15s ease, transform .15s ease;
+}
+.stButton > button:hover, [data-testid="stFormSubmitButton"] button:hover {
+  filter: brightness(1.12);
+  border-color: #7be5f7;
+  color: #fff;
+}
+[data-testid="stDataFrame"] {
+  border: 1px solid var(--as-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+[data-testid="stAlert"] {
+  border-radius: 10px;
+  border-width: 1px;
+}
+details {
+  background: rgba(17, 27, 39, .72);
+  border: 1px solid var(--as-line);
+  border-radius: 10px;
+  padding: .15rem .55rem;
+}
+a { color: var(--as-accent) !important; }
+@media (max-width: 700px) {
+  [data-testid="stAppViewContainer"] > .main .block-container {
+    padding-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+</style>
+""", unsafe_allow_html=True)
+
+plt.rcParams.update({
+    "figure.facecolor": "#111b27",
+    "axes.facecolor": "#111b27",
+    "axes.edgecolor": "#587084",
+    "axes.labelcolor": "#c4d3df",
+    "text.color": "#e8f0f7",
+    "xtick.color": "#a9bdcc",
+    "ytick.color": "#a9bdcc",
+    "grid.color": "#526779",
+})
+
+st.markdown('<div style="color:#36c5e8;font-size:.72rem;font-weight:700;letter-spacing:.22em;margin-bottom:.25rem;">PRECISION AUDIO SETUP</div>', unsafe_allow_html=True)
 st.title("AcoustiSync")
-st.caption("Audio setup assistant • Room acoustics • DIY enclosure design")
+st.caption("Room acoustics  /  Speaker placement  /  Enclosure design")
 mode = st.radio("Choose your audio environment", ["HOME AUDIO", "CAR AUDIO"], horizontal=True)
 st.divider()
 
@@ -34,7 +158,7 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
 
     # Room outline: width is the horizontal axis; length is the vertical axis.
     ax.add_patch(plt.Rectangle((0, 0), room_w, room_l, fill=False,
-                               edgecolor="black", linewidth=2.2))
+                               edgecolor="#7b9bb2", linewidth=2.2))
     ax.text(room_w / 2, room_l + 0.38, f"BACK WALL  •  {room_w:.2f} m wide",
             ha="center", va="center", fontsize=8)
     ax.text(room_w / 2, -0.34, "FRONT WALL", ha="center", va="center",
@@ -72,7 +196,7 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
                     arrowprops=dict(arrowstyle="<->", color="#536b80", lw=1.1))
         ax.text(listener_x + 0.10, (listener_y + speaker_y) / 2,
                 f"{listener_y - speaker_y:.2f} m",
-                fontsize=7, va="center", color="#34495e")
+                fontsize=7, va="center", color="#b4c7d6")
 
     # Listening seat icon.
     seat_w, seat_d = min(0.95, room_w * 0.42), 0.38
@@ -94,7 +218,7 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
 
     # Dimension lines and labels.
     ax.annotate("", xy=(0, room_l + 0.15), xytext=(room_w, room_l + 0.15),
-                arrowprops=dict(arrowstyle="<->", color="#333333", lw=1))
+                arrowprops=dict(arrowstyle="<->", color="#7b9bb2", lw=1))
     ax.text(room_w / 2, room_l + 0.19, f"{room_w:.2f} m",
             ha="center", va="bottom", fontsize=8)
     ax.annotate("", xy=(-0.22, 0), xytext=(-0.22, room_l),
@@ -113,7 +237,7 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
     ax.set_ylabel("Room length (m)")
     ax.set_xticks(np.arange(0, room_w + 0.01, 0.5))
     ax.set_yticks(np.arange(0, room_l + 0.01, 0.5))
-    ax.grid(True, alpha=.18, linewidth=0.5)
+    ax.grid(True, alpha=.22, linewidth=0.6)
     ax.set_title("Scaled top-down room plan", fontsize=10, pad=12)
     st.pyplot(fig, use_container_width=False)
     plt.close(fig)
