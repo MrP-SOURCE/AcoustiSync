@@ -1,7 +1,8 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+import numpy as np
 from acoustics import (
-    wavelength, room_axial_modes, estimate_sealed_box, estimate_ported_box,
+    wavelength, room_axial_modes, sabine_rt60, estimate_sealed_box, estimate_ported_box,
     port_length_cm, port_velocity, placement_guidance, lookup_driver
 )
 
@@ -24,6 +25,33 @@ def draw_room(room_l, room_w, sx, sy, lx, ly):
     st.pyplot(fig)
     plt.close(fig)
 
+
+def draw_mode_field_3d(room_l, room_w, room_h, axis, order):
+    """Illustrative 3D pressure field for one ideal axial room mode."""
+    x = np.linspace(0, room_l, 8)
+    y = np.linspace(0, room_w, 6)
+    z = np.linspace(0, room_h, 5)
+    xx, yy, zz = np.meshgrid(x, y, z, indexing="ij")
+    dimension = {"Length": room_l, "Width": room_w, "Height": room_h}[axis]
+    coordinate = {"Length": xx, "Width": yy, "Height": zz}[axis]
+    pressure = np.cos(order * np.pi * coordinate / dimension)
+
+    fig = plt.figure(figsize=(8, 5))
+    ax = fig.add_subplot(111, projection="3d")
+    points = ax.scatter(
+        xx.ravel(), yy.ravel(), zz.ravel(),
+        c=pressure.ravel(), cmap="coolwarm", vmin=-1, vmax=1,
+        s=24, alpha=0.85
+    )
+    ax.set_xlabel("Length (m)")
+    ax.set_ylabel("Width (m)")
+    ax.set_zlabel("Height (m)")
+    ax.set_title(f"Ideal {axis.lower()} axial mode {order}")
+    fig.colorbar(points, ax=ax, shrink=0.65, label="Relative pressure")
+    st.pyplot(fig)
+    plt.close(fig)
+
+
 if mode == "HOME AUDIO":
     task = st.radio("Home audio workflow", ["Finished speaker setup", "Driver-in-hand / DIY enclosure"], horizontal=True)
     if task == "Finished speaker setup":
@@ -43,13 +71,40 @@ if mode == "HOME AUDIO":
             compromised = st.checkbox("Compromised setup: speakers cannot be moved far from walls")
         st.markdown("Room boundaries")
         walls = st.selectbox("Wall construction", ["Brick / concrete", "Plasterboard / hollow wall", "Mixed"])
+        floor_type = st.selectbox("Floor finish", ["Carpet", "Wood / tile", "Thick rug"])
+        ceiling_type = st.selectbox("Ceiling finish", ["Plaster / concrete", "Acoustic ceiling"])
         furniture = st.text_input("Furniture / obstacles", "Sofa between speakers; bookcase on side wall")
+        furniture_sabins = st.number_input(
+            "Additional furnishings absorption (Sabins)", 0.0, 100.0, 8.0, 1.0
+        )
+        mode_axis = st.selectbox("3D axial mode to inspect", ["Length", "Width", "Height"])
+        mode_order = st.selectbox("Mode order", [1, 2, 3, 4])
         if st.button("Calculate placement plan", type="primary"):
             st.write(f"**System:** {speakers} with {amp}. Use case: {use_case}.")
             st.write(placement_guidance(front_wall, side_wall, listening_distance, compromised, use_case))
             st.write("**Room axial-mode estimates (Hz)**")
             modes = room_axial_modes(room_l, room_w, room_h)
             st.dataframe([{"Axis": a, "Mode": n, "Frequency (Hz)": round(f, 1)} for a,n,f in modes], use_container_width=True)
+            wall_alpha = {"Brick / concrete": 0.03, "Plasterboard / hollow wall": 0.05, "Mixed": 0.04}[walls]
+            floor_alpha = {"Carpet": 0.25, "Wood / tile": 0.05, "Thick rug": 0.35}[floor_type]
+            ceiling_alpha = {"Plaster / concrete": 0.05, "Acoustic ceiling": 0.55}[ceiling_type]
+            wall_area = 2 * (room_l * room_h + room_w * room_h)
+            floor_area = room_l * room_w
+            absorption_sabins = (
+                wall_area * wall_alpha
+                + floor_area * floor_alpha
+                + floor_area * ceiling_alpha
+                + furniture_sabins
+            )
+            rt60 = sabine_rt60(room_l * room_w * room_h, absorption_sabins)
+            st.write(f"**Estimated RT60 (Sabine, mid-frequency screening):** {rt60:.2f} seconds.")
+            st.caption(
+                f"Estimated equivalent absorption: {absorption_sabins:.1f} Sabins. "
+                "Material coefficients are broad assumptions; this is not a measured RT60."
+            )
+            st.write("**3D room-mode pressure field**")
+            draw_mode_field_3d(room_l, room_w, room_h, mode_axis, mode_order)
+            st.caption("Idealised axial-mode distribution only; real rooms include damping, boundary effects and coupled modes.")
             st.write("**Room layout (illustrative, not a measured acoustic model)**")
             sx, sy = max(.1, front_wall), max(.1, side_wall)
             draw_room(room_l, room_w, sx, sy, min(room_l-.2, listening_distance+front_wall), room_w/2)
