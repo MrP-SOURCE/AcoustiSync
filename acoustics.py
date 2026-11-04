@@ -1,0 +1,86 @@
+"""Acoustic helper functions for AcoustiSync. SI units unless stated otherwise."""
+import math
+
+SPEED_OF_SOUND = 343.0
+
+# Clearly marked sample records only. Replace with verified, licensed data sources.
+DEMO_DRIVERS = {
+    "demo 12 inch": {"model":"Demo 12-inch (illustrative)", "Fs":28.0, "Qts":0.42, "Vas":55.0, "Re":3.6, "Xmax":12.0, "found":True},
+    "mission subwoofer driver": {"model":"Mission Subwoofer Driver (unverified demo)", "Fs":30.0, "Qts":0.48, "Vas":42.0, "Re":3.4, "Xmax":7.0, "found":True},
+}
+
+def lookup_driver(model: str) -> dict:
+    """Local mock lookup. It never claims values are verified manufacturer specifications."""
+    key = (model or "").strip().lower()
+    if key in DEMO_DRIVERS:
+        return dict(DEMO_DRIVERS[key])
+    return {"model": model or "", "found": False, "Fs": 28.0, "Qts": 0.42, "Vas": 60.0, "Re": 3.6, "Xmax": 8.0}
+
+def wavelength(freq_hz: float, speed: float = SPEED_OF_SOUND) -> float:
+    if freq_hz <= 0: raise ValueError("Frequency must be positive.")
+    return speed / freq_hz
+
+def room_axial_modes(length_m: float, width_m: float, height_m: float, max_order: int = 4):
+    """Return (axis, order, Hz) ideal axial modes."""
+    if min(length_m, width_m, height_m) <= 0:
+        raise ValueError("Room dimensions must be positive.")
+    modes = []
+    for axis, dim in (("Length", length_m), ("Width", width_m), ("Height", height_m)):
+        for n in range(1, max_order + 1):
+            modes.append((axis, n, SPEED_OF_SOUND * n / (2 * dim)))
+    return sorted(modes, key=lambda x: x[2])
+
+def estimate_sealed_box(fs_hz: float, qts: float, vas_l: float, target_qtc: float = 0.707):
+    """Classic sealed-box approximation: Qtc = Qts*sqrt(1+Vas/Vb)."""
+    if fs_hz <= 0 or qts <= 0 or vas_l <= 0 or target_qtc <= qts:
+        raise ValueError("Need positive Fs/Qts/Vas and target Qtc greater than Qts.")
+    vb = vas_l / ((target_qtc / qts) ** 2 - 1)
+    fc = fs_hz * math.sqrt(1 + vas_l / vb)
+    return {"vb_l": vb, "qtc": target_qtc, "fc_hz": fc}
+
+def estimate_ported_box(fs_hz: float, qts: float, vas_l: float):
+    """Rough QB3-like screening estimate; not a substitute for full alignment modelling."""
+    if min(fs_hz, qts, vas_l) <= 0:
+        raise ValueError("Fs, Qts and Vas must be positive.")
+    # Empirical approximation used only as a starting point.
+    alpha = max(2.0, min(20.0, 15.0 * (qts ** 2.0)))
+    vb = vas_l / alpha
+    fb = fs_hz * (0.42 / max(qts, 0.2)) ** 0.35
+    return {"vb_l": vb, "fb_hz": fb, "alignment": "rough screening estimate"}
+
+def port_length_cm(area_cm2: float, vb_l: float, fb_hz: float, end_correction_cm: float = 1.46):
+    """Helmholtz approximation: Lv(cm)=((23562.5*A)/(Fb^2*Vb))-k*sqrt(A)."""
+    if area_cm2 <= 0 or vb_l <= 0 or fb_hz <= 0:
+        raise ValueError("Port area, box volume and tuning frequency must be positive.")
+    # Common round-port approximation. End correction is simplified; validate final design.
+    length = (23562.5 * area_cm2 / (fb_hz**2 * vb_l)) - end_correction_cm * math.sqrt(area_cm2)
+    return max(0.0, length)
+
+def port_velocity(power_w: float, sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
+    """Very simplified sinusoidal volume-velocity estimate; needs real driver parameters."""
+    if min(power_w, sd_cm2, xmax_mm, freq_hz, port_area_cm2) <= 0:
+        raise ValueError("All inputs must be positive.")
+    # Cone peak displacement volume (m^3), then peak velocity through port.
+    displacement_m3 = sd_cm2 * 1e-4 * xmax_mm * 1e-3
+    volume_velocity_m3_s = 2 * math.pi * freq_hz * displacement_m3
+    return volume_velocity_m3_s / (port_area_cm2 * 1e-4)
+
+def placement_guidance(front_wall_m, side_wall_m, listening_distance_m, compromised, use_case):
+    front = max(0.2, front_wall_m)
+    side = max(0.3, side_wall_m)
+    toe = 10 if use_case == "Casual listening" else 15
+    if listening_distance_m < 1.5: toe = 5
+    lines = [
+        f"Start with speaker baffles about {front:.2f} m from the front wall and cabinets at least {side:.2f} m from side walls, if practical.",
+        f"Start with approximately {toe}° toe-in per speaker, then adjust in 2–3° steps for centre image and treble balance.",
+        f"Begin with an approximately equilateral speaker/listener triangle; listening distance entered: {listening_distance_m:.2f} m.",
+        "Measure bass response at the listening seat and several nearby positions before applying EQ."
+    ]
+    if compromised:
+        lines += [
+            "If the speakers must stay close to a wall, prioritise symmetry and keep the left/right boundary distances similar.",
+            "Try manufacturer-approved port plugs for rear-ported speakers; plugging changes bass alignment and is not universally beneficial.",
+            "Use measured parametric EQ cuts for strong peaks; avoid large boosts into cancellation nulls.",
+            "Move the listening seat in small increments (10–20 cm) to find smoother bass."
+        ]
+    return "\n".join("- " + line for line in lines)
