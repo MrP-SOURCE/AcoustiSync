@@ -32,7 +32,7 @@ GitHub Actions runs the acoustic calculation tests and Streamlit workflow smoke 
 
 This application is a planning aid, not professional design sign-off. RT60 uses broad, assumed mid-frequency absorption coefficients; actual absorption varies by frequency, material construction, installation, furnishings and room contents. The 3D room-mode view is an idealised axial pressure field, not a measured or full-wave room simulation.
 
-Driver catalogue entries are illustrative and are not verified manufacturer specifications. Enclosure estimates require confirmation against the exact driver's datasheet, full Thiele/Small parameters, excursion and port-velocity modelling, physical fitment, and measurement. Room and vehicle acoustic behaviour cannot be fully predicted from the current inputs.
+Driver catalogue entries are illustrative and are not verified manufacturer specifications. Round-port length uses an equivalent diameter derived from the entered port area and a conventional end-correction estimate; flares, slot ports, port folding and enclosure-specific end effects still require dedicated modelling. Enclosure estimates require confirmation against the exact driver's datasheet, full Thiele/Small parameters, excursion and port-velocity modelling, physical fitment, and measurement. Room and vehicle acoustic behaviour cannot be fully predicted from the current inputs.
 
 Do not cut enclosure panels or apply aggressive EQ solely from these preliminary estimates.
 
