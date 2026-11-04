@@ -140,10 +140,21 @@ if mode == "HOME AUDIO":
             port_d = c.number_input("Round port inside diameter (cm)", 3.0, 20.0, 10.0, .5)
             submitted = st.form_submit_button("Design enclosure", type="primary")
         if submitted:
-            sealed = estimate_sealed_box(fs, qts, vas)
             ported = estimate_ported_box(fs, qts, vas)
             st.subheader("Initial alignment estimates")
-            st.write(f"**Suggested sealed starting point:** {sealed['vb_l']:.1f} L net, estimated Qtc {sealed['qtc']:.2f}.")
+            st.write(
+                f"**Driver inputs:** {model} · Fs {fs:.1f} Hz · Qts {qts:.2f} · "
+                f"Vas {vas:.1f} L · Re {re:.1f} Ω · Xmax {xmax:.1f} mm."
+            )
+            try:
+                sealed = estimate_sealed_box(fs, qts, vas)
+                st.write(f"**Suggested sealed starting point:** {sealed['vb_l']:.1f} L net, estimated Qtc {sealed['qtc']:.2f}.")
+            except ValueError:
+                st.warning(
+                    "A sealed alignment targeting Qtc 0.707 cannot be calculated when "
+                    "the entered Qts is 0.707 or higher. Review the driver data or use "
+                    "a different target alignment in a dedicated simulator."
+                )
             st.write(f"**Ported starting point:** {ported['vb_l']:.1f} L net, approximate Fb {target_fb:.1f} Hz target.")
             st.caption("These are screening estimates, not a validated alignment. Final design needs full T/S data (including Qes/Qms, Sd, Pe and excursion), response modelling, and measurement.")
             net = ported["vb_l"]
@@ -153,7 +164,8 @@ if mode == "HOME AUDIO":
             st.write(f"**Port:** {port_d:.1f} cm internal diameter × {length:.1f} cm calculated straight length (before end correction/flare adjustment).")
             st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L after adding driver/bracing displacement.")
             st.write(f"**Air velocity check:** requires amplifier power, Sd, and excursion model; not inferred from T/S values alone. Avoid assuming this port is quiet at high output.")
-            st.write("**Cutting-sheet basis:** choose internal dimensions that multiply to gross volume (L × W × H / 1000 = litres). For a simple rectangular box, external dimensions add twice the panel thickness to each internal dimension. Include bracing, driver cutout, port path, and assembly method before cutting.")
+            st.write(f"**Panel basis:** {wood:.0f} mm material. External rectangular dimensions add {2 * wood:.0f} mm to each corresponding internal dimension.")
+            st.write("**Cutting-sheet basis:** choose internal dimensions that multiply to gross volume (L × W × H / 1000 = litres). Include bracing, driver cutout, port path, and assembly method before cutting.")
             st.warning("Do not cut wood from these preliminary estimates without verifying driver datasheet values, port end corrections, fitment, and the final net-volume calculation.")
 
 else:
@@ -184,6 +196,7 @@ else:
             max_h = trunk_h/100
             max_d = trunk_d/100
             fit_l = max_l*max_h*max_d*1000
+            st.write(f"**Subwoofer:** {model} · Fs {fs:.1f} Hz · Qts {qts:.2f} · Vas {vas:.1f} L · Xmax {xmax:.1f} mm.")
             st.write(f"**Preliminary net volume:** {net:.1f} L; gross estimate with 1.5 L allowance: {gross:.1f} L.")
             st.write(f"**Port:** {port_d:.1f} cm diameter × {length:.1f} cm calculated length for {target_fb:.1f} Hz (before end corrections).")
             st.write(f"**Available rectangular envelope:** approximately {fit_l:.1f} L gross before taper, wheel arches, trim, and clearance.")
