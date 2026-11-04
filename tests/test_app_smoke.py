@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
 
@@ -17,6 +18,28 @@ def test_home_placement_calculation_and_3d_plot_run():
     app = AppTest.from_file(APP_PATH, default_timeout=15).run()
     app.button[0].click().run()
     assert not app.exception
+
+
+@pytest.mark.parametrize("sub_count", [0, 1, 2, 4])
+def test_home_subwoofer_screening_options_render(sub_count):
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    selector = next(
+        item for item in app.selectbox
+        if item.label == "Number of subwoofers to screen"
+    )
+    selector.set_value(sub_count).run()
+    calculate = next(
+        item for item in app.button
+        if item.label == "Calculate placement plan"
+    )
+    calculate.click().run()
+
+    assert not app.exception
+    screening_text = [
+        item.value for item in app.markdown
+        if "Subwoofer placement screening" in item.value
+    ]
+    assert bool(screening_text) is (sub_count > 0)
 
 
 def test_car_enclosure_calculation_runs():
