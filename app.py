@@ -12,6 +12,19 @@ st.caption("Audio setup assistant • Room acoustics • DIY enclosure design")
 mode = st.radio("Choose your audio environment", ["HOME AUDIO", "CAR AUDIO"], horizontal=True)
 st.divider()
 
+def calculate_subwoofer_positions(room_l, room_w, front_wall_m, side_wall_m, sub_count):
+    """Return geometric starting coordinates for subwoofer placement screening."""
+    front_offset = min(max(front_wall_m, 0.18), max(0.18, room_l * 0.20))
+    side_offset = min(max(side_wall_m, 0.18), max(0.18, room_w * 0.20))
+    if sub_count == 1:
+        return [(room_w / 2, front_offset)]
+    if sub_count == 2:
+        return [(room_w / 2, front_offset), (room_w / 2, room_l - front_offset)]
+    if sub_count == 4:
+        return [(room_w / 2, front_offset), (room_w / 2, room_l - front_offset), (side_offset, room_l / 2), (room_w - side_offset, room_l / 2)]
+    return []
+
+
 def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, subwoofer_positions=None):
     """Draw a dimensionally scaled top-down plan using the entered room measurements."""
     fig, ax = plt.subplots(figsize=(7.2, 6.2))
@@ -215,22 +228,10 @@ if mode == "HOME AUDIO":
                 f"{room_l:.2f} m long × {room_h:.2f} m high. Speaker and seat symbols "
                 "show calculated plan positions, not the physical cabinet dimensions."
             )
-            # Conventional starting layouts to compare; not a substitute for in-room measurement.
-            sub_positions = []
-            if sub_count == 1:
-                sub_positions = [(room_w / 2, min(max(front_wall, 0.18), room_l * 0.25))]
-            elif sub_count == 2:
-                sub_positions = [
-                    (room_w / 2, min(max(front_wall, 0.18), room_l * 0.20)),
-                    (room_w / 2, room_l - min(max(front_wall, 0.18), room_l * 0.20)),
-                ]
-            elif sub_count == 4:
-                sub_positions = [
-                    (room_w / 2, min(max(front_wall, 0.18), room_l * 0.20)),
-                    (room_w / 2, room_l - min(max(front_wall, 0.18), room_l * 0.20)),
-                    (min(max(side_wall, 0.18), room_w * 0.20), room_l / 2),
-                    (room_w - min(max(side_wall, 0.18), room_w * 0.20), room_l / 2),
-                ]
+            # Geometric starting layouts; not acoustic optimisation.
+            sub_positions = calculate_subwoofer_positions(
+                room_l, room_w, front_wall, side_wall, sub_count
+            )
             if sub_count:
                 st.markdown("**Subwoofer placement screening**")
                 if sub_count == 1:
@@ -240,6 +241,21 @@ if mode == "HOME AUDIO":
                 else:
                     st.write("Start by testing the midpoint of each wall. This four-position arrangement is a comparison starting point, not a predicted optimum.")
                 st.caption("Subwoofer icons show suggested test positions only. Room modes, crossover, phase, delay, subwoofer response and furnishings affect the result. Verify with measurements at several seats.")
+                st.markdown("**Suggested subwoofer coordinates**")
+                st.dataframe(
+                    [
+                        {
+                            "Subwoofer": f"SUB {index}",
+                            "Distance from left wall": f"{x:.2f} m",
+                            "Distance from front wall": f"{y:.2f} m",
+                            "Distance from right wall": f"{room_w - x:.2f} m",
+                            "Distance from back wall": f"{room_l - y:.2f} m",
+                        }
+                        for index, (x, y) in enumerate(sub_positions, start=1)
+                    ],
+                    use_container_width=True,
+                    hide_index=True,
+                )
             draw_room(room_l, room_w, front_wall, side_wall, listening_distance, sub_positions)
             st.info("**In practical terms:** start with the suggested positions, listen for uneven bass or a weak centre image, then move speakers in small steps. The calculation cannot hear your room. A microphone measurement is needed for a reliable final adjustment.")
             if compromised:
