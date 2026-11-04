@@ -12,7 +12,7 @@ st.caption("Audio setup assistant • Room acoustics • DIY enclosure design")
 mode = st.radio("Choose your audio environment", ["HOME AUDIO", "CAR AUDIO"], horizontal=True)
 st.divider()
 
-def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m):
+def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, subwoofer_positions=None):
     """Draw a dimensionally scaled top-down plan using the entered room measurements."""
     fig, ax = plt.subplots(figsize=(7.2, 6.2))
     ax.set_aspect("equal", adjustable="box")
@@ -68,6 +68,16 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m):
                                edgecolor="#735f48", linewidth=1.3, zorder=3))
     ax.text(listener_x, listener_y, "LISTENING POSITION",
             ha="center", va="center", fontsize=6.5, zorder=6)
+
+    # Subwoofer positions are screening suggestions, not measured room optimisation.
+    for index, (sub_x, sub_y) in enumerate(subwoofer_positions or [], start=1):
+        ax.add_patch(plt.Rectangle((sub_x - 0.105, sub_y - 0.105), 0.21, 0.21,
+                                   facecolor="#f4d7a1", edgecolor="#8a5a12",
+                                   linewidth=1.5, zorder=7))
+        ax.add_patch(plt.Circle((sub_x, sub_y), 0.055, facecolor="#a56b20",
+                                edgecolor="#69420e", linewidth=0.8, zorder=8))
+        ax.text(sub_x, sub_y + 0.15, f"SUB {index}", ha="center",
+                va="bottom", fontsize=6.5, weight="bold", zorder=9)
 
     # Dimension lines and labels.
     ax.annotate("", xy=(0, room_l + 0.15), xytext=(room_w, room_l + 0.15),
@@ -151,6 +161,8 @@ if mode == "HOME AUDIO":
             front_wall = st.number_input("Available speaker distance from front wall (m)", .05, 2.0, .45, .05)
             side_wall = st.number_input("Available distance from side wall (m)", .05, 2.0, .6, .05)
             listening_distance = st.number_input("Listening distance (m)", 1.0, 8.0, 2.5, .1)
+            sub_count = st.selectbox("Number of subwoofers to screen", [0, 1, 2, 4], index=0,
+                                     format_func=lambda n: "No subwoofer" if n == 0 else str(n))
             compromised = st.checkbox("Compromised setup: speakers cannot be moved far from walls")
         st.markdown("Room boundaries")
         walls = st.selectbox("Wall construction", ["Brick / concrete", "Plasterboard / hollow wall", "Mixed"])
@@ -203,7 +215,32 @@ if mode == "HOME AUDIO":
                 f"{room_l:.2f} m long × {room_h:.2f} m high. Speaker and seat symbols "
                 "show calculated plan positions, not the physical cabinet dimensions."
             )
-            draw_room(room_l, room_w, front_wall, side_wall, listening_distance)
+            # Conventional starting layouts to compare; not a substitute for in-room measurement.
+            sub_positions = []
+            if sub_count == 1:
+                sub_positions = [(room_w / 2, min(max(front_wall, 0.18), room_l * 0.25))]
+            elif sub_count == 2:
+                sub_positions = [
+                    (room_w / 2, min(max(front_wall, 0.18), room_l * 0.20)),
+                    (room_w / 2, room_l - min(max(front_wall, 0.18), room_l * 0.20)),
+                ]
+            elif sub_count == 4:
+                sub_positions = [
+                    (room_w / 2, min(max(front_wall, 0.18), room_l * 0.20)),
+                    (room_w / 2, room_l - min(max(front_wall, 0.18), room_l * 0.20)),
+                    (min(max(side_wall, 0.18), room_w * 0.20), room_l / 2),
+                    (room_w - min(max(side_wall, 0.18), room_w * 0.20), room_l / 2),
+                ]
+            if sub_count:
+                st.markdown("**Subwoofer placement screening**")
+                if sub_count == 1:
+                    st.write("Start by testing the front-wall centre position. Also compare a front corner and measure bass response at the listening seat.")
+                elif sub_count == 2:
+                    st.write("Start by testing the front- and rear-wall midpoints. This opposing-wall arrangement can reduce seat-to-seat bass variation in some rectangular rooms, but is not guaranteed.")
+                else:
+                    st.write("Start by testing the midpoint of each wall. This four-position arrangement is a comparison starting point, not a predicted optimum.")
+                st.caption("Subwoofer icons show suggested test positions only. Room modes, crossover, phase, delay, subwoofer response and furnishings affect the result. Verify with measurements at several seats.")
+            draw_room(room_l, room_w, front_wall, side_wall, listening_distance, sub_positions)
             st.info("**In practical terms:** start with the suggested positions, listen for uneven bass or a weak centre image, then move speakers in small steps. The calculation cannot hear your room. A microphone measurement is needed for a reliable final adjustment.")
             if compromised:
                 st.write("- Try the manufacturer's foam port plug if the speaker has a rear port.")
