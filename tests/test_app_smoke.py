@@ -40,6 +40,19 @@ def test_home_subwoofer_screening_options_render(sub_count):
         if "Subwoofer placement screening" in item.value
     ]
     assert bool(screening_text) is (sub_count > 0)
+    coordinate_tables = [
+        item.value for item in app.dataframe
+        if hasattr(item.value, "columns")
+        and "Distance from left wall" in item.value.columns
+    ]
+    if sub_count == 0:
+        assert not coordinate_tables
+    else:
+        assert len(coordinate_tables) == 1
+        assert len(coordinate_tables[0]) == sub_count
+        assert list(coordinate_tables[0]["Subwoofer"]) == [
+            f"SUB {index}" for index in range(1, sub_count + 1)
+        ]
 
 
 def test_car_enclosure_calculation_runs():
