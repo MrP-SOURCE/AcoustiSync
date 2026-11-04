@@ -344,7 +344,9 @@ if mode == "HOME AUDIO":
             sub_count = st.selectbox("Number of subwoofers to screen", [0, 1, 2, 4], index=0,
                                      format_func=lambda n: "No subwoofer" if n == 0 else str(n))
             compromised = st.checkbox("Compromised setup: speakers cannot be moved far from walls")
-        speaker_kind = "bookshelf" if any(word in speakers.lower() for word in ("bookshelf", "standmount", "monitor")) else "floorstander"\n        show_equipment_visual(speaker_kind, speakers, "Premium reference visual for this speaker category. Placement is calculated from your room measurements.")\n        st.markdown("Room boundaries")
+        speaker_kind = "bookshelf" if any(word in speakers.lower() for word in ("bookshelf", "standmount", "monitor")) else "floorstander"
+        show_equipment_visual(speaker_kind, speakers, "Premium reference visual for this speaker category. Placement is calculated from your room measurements.")
+        st.markdown("Room boundaries")
         walls = st.selectbox("Wall construction", ["Brick / concrete", "Plasterboard / hollow wall", "Mixed"])
         floor_type = st.selectbox("Floor finish", ["Carpet", "Wood / tile", "Thick rug"])
         ceiling_type = st.selectbox("Ceiling finish", ["Plaster / concrete", "Acoustic ceiling"])
@@ -438,7 +440,8 @@ if mode == "HOME AUDIO":
         if st.button("Look up driver"):
             record = lookup_driver(model)
             st.session_state["driver_lookup"] = record
-        rec = st.session_state.get("driver_lookup", lookup_driver(""))\n        show_equipment_visual("subwoofer", model, "Premium reference visual for a home DIY subwoofer driver. Enter exact datasheet values for calculations.")
+        rec = st.session_state.get("driver_lookup", lookup_driver(""))
+        show_equipment_visual("subwoofer", model, "Premium reference visual for a home DIY subwoofer driver. Enter exact datasheet values for calculations.")
         if rec and rec.get("found"):
             st.success(f"Demo catalogue match: {rec['model']} — values are illustrative, not verified manufacturer data.")
         else:
@@ -458,7 +461,12 @@ if mode == "HOME AUDIO":
             submitted = st.form_submit_button("Design enclosure", type="primary")
         if submitted:
             ported = estimate_ported_box(fs, qts, vas)
-            st.subheader("Initial alignment estimates")\n            v1, v2 = st.columns(2)\n            with v1:\n                show_equipment_visual("sealed_box", f"{model} · sealed", "Conceptual sealed enclosure.")\n            with v2:\n                show_equipment_visual("ported_box", f"{model} · ported", "Conceptual ported enclosure with visible port opening.")
+            st.subheader("Initial alignment estimates")
+            v1, v2 = st.columns(2)
+            with v1:
+                show_equipment_visual("sealed_box", f"{model} · sealed", "Conceptual sealed enclosure.")
+            with v2:
+                show_equipment_visual("ported_box", f"{model} · ported", "Conceptual ported enclosure with visible port opening.")
             st.write(
                 f"**Driver inputs:** {model} · Fs {fs:.1f} Hz · Qts {qts:.2f} · "
                 f"Vas {vas:.1f} L · Re {re:.1f} Ω · Xmax {xmax:.1f} mm."
@@ -532,7 +540,8 @@ else:
         st.subheader("Car component placement")
         st.caption("Choose the options that match your vehicle and speaker installation.")
         speaker = st.text_input("Component speaker model", "Component 6.5-inch set")
-        tweeter = st.selectbox("Tweeter location", ["A-pillar", "Dash", "Sail panel", "Factory location"])\n        show_equipment_visual("component", speaker, "Representative component-driver visual. Midbass and tweeter remain separate installation components.")
+        tweeter = st.selectbox("Tweeter location", ["A-pillar", "Dash", "Sail panel", "Factory location"])
+        show_equipment_visual("component", speaker, "Representative component-driver visual. Midbass and tweeter remain separate installation components.")
         driver_side = st.selectbox("Driver position", ["Left-hand drive", "Right-hand drive"], index=1)
         if st.button("Generate staging advice", type="primary"):
             st.write(f"For {speaker}, begin with tweeters at {tweeter.lower()} and aim them for a controlled comparison rather than assuming on-axis is always best.")
