@@ -52,6 +52,17 @@ def test_port_length_is_nonnegative():
     assert port_length_cm(78.54, 40.0, 32.0) >= 0
 
 
+def test_port_length_matches_diameter_based_round_port_formula():
+    area_cm2 = math.pi * (10.0 / 2.0) ** 2
+    expected = (23562.5 * 10.0**2 / (32.0**2 * 40.0)) - (1.46 * 10.0)
+    assert port_length_cm(area_cm2, 40.0, 32.0) == pytest.approx(expected)
+
+
+def test_port_length_rejects_nonpositive_inputs():
+    with pytest.raises(ValueError):
+        port_length_cm(0, 40.0, 32.0)
+
+
 def test_demo_driver_is_explicitly_unverified():
     result = lookup_driver("Mission Subwoofer Driver")
     assert result["found"] is True
