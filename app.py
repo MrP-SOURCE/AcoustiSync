@@ -515,6 +515,7 @@ else:
             xmax = st.number_input("Xmax (mm, one-way)", 1.0, 40.0, 12.0, .5)
             target_fb = st.number_input("Target tuning Fb (Hz)", 20.0, 50.0, 32.0, .5)
             port_d = st.number_input("Round port diameter (cm)", 5.0, 18.0, 10.0, .5)
+        show_equipment_visual("subwoofer", model, "Premium reference visual for the selected car subwoofer category. Use exact manufacturer specifications for calculations.")
         if st.button("Calculate car enclosure", type="primary"):
             result = estimate_ported_box(fs, qts, vas)
             net = result["vb_l"]
@@ -526,6 +527,11 @@ else:
             max_d = trunk_d/100
             fit_l = max_l*max_h*max_d*1000
             st.write(f"**Subwoofer:** {model} · Fs {fs:.1f} Hz · Qts {qts:.2f} · Vas {vas:.1f} L · Xmax {xmax:.1f} mm.")
+            box_left, box_right = st.columns(2)
+            with box_left:
+                show_equipment_visual("sealed_box", f"{model} · sealed concept", "Conceptual sealed enclosure. This is a visual reference, not a cut-ready design.")
+            with box_right:
+                show_equipment_visual("ported_box", f"{model} · ported concept", "Conceptual ported enclosure with visible port opening. Dimensions are calculated separately below.")
             st.write(f"**Estimated usable box space: {net:.1f} litres.** Allowing 1.5 litres for the driver and internal parts gives an estimated gross requirement of {gross:.1f} litres.")
             st.write(f"**Port tube starting size: {port_d:.1f} cm diameter × {length:.1f} cm long**, estimated for your selected {target_fb:.1f} Hz target.")
             st.caption(f"The simplified driver model estimates a tuning point near {result['fb_hz']:.1f} Hz before applying your selected port target.")
