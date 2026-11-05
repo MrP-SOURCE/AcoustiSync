@@ -193,6 +193,14 @@ def calculate_subwoofer_positions(room_l, room_w, front_wall_m, side_wall_m, sub
     return []
 
 
+def calculate_listener_position(room_l, requested_front_clearance_m, listening_distance_m):
+    """Keep speaker and listening-seat reference points inside a short room."""
+    speaker_y = min(max(0.12, requested_front_clearance_m), max(0.12, room_l - 0.90))
+    requested_listener_y = speaker_y + listening_distance_m
+    listener_y = min(max(requested_listener_y, speaker_y + 0.35), room_l - 0.45)
+    return speaker_y, listener_y, requested_listener_y
+
+
 def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, subwoofer_positions=None):
     """Draw a dimensionally scaled top-down plan using the entered room measurements."""
     fig, ax = plt.subplots(figsize=(5.2, 4.5), constrained_layout=True)
@@ -211,8 +219,10 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
     # Keep the plan physically inside the room if a requested wall clearance
     # cannot fit; show the effective clearance used in the drawing.
     effective_side = min(max(0.12, side_wall_m), max(0.12, (room_w - 0.28) / 2))
-    effective_front = min(max(0.12, front_wall_m), max(0.12, room_l - 0.55))
-    speaker_y = effective_front
+    speaker_y, listener_y, requested_listener_y = calculate_listener_position(
+        room_l, front_wall_m, listening_distance_m
+    )
+    effective_front = speaker_y
     left_x, right_x = effective_side, room_w - effective_side
 
     # Small top-down speaker cabinet icons. The two drivers are decorative
@@ -231,9 +241,6 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
         ax.text(x, speaker_y + 0.22, f"{label} SPEAKER",
                 ha="center", va="bottom", fontsize=7, weight="bold")
 
-    requested_listener_y = speaker_y + listening_distance_m
-    listener_y = min(requested_listener_y, room_l - 0.45)
-    listener_y = max(speaker_y + 0.35, listener_y)
     listener_x = room_w / 2
     if listener_y > speaker_y:
         ax.annotate("", xy=(listener_x, listener_y), xytext=(listener_x, speaker_y),
