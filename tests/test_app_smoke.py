@@ -166,3 +166,26 @@ def test_home_diy_enclosure_renders_volume_and_port_outputs():
     assert "port displacement" in rendered
     assert "Suggested internal enclosure size" in rendered
     assert "Basic six-panel cut list" in rendered
+
+
+def test_car_enclosure_rejects_box_that_exceeds_one_vehicle_dimension():
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    app.radio[0].set_value("CAR AUDIO").run()
+    next(item for item in app.number_input if item.label == "Available width (cm)").set_value(30.0)
+    app.run()
+    next(item for item in app.button if item.label == "Calculate car enclosure").click().run()
+
+    assert not app.exception
+    assert any(
+        "exceeds at least one entered vehicle dimension" in item.value
+        for item in app.error
+    )
+
+
+def test_car_enclosure_warns_when_straight_port_exceeds_box_depth():
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    app.radio[0].set_value("CAR AUDIO").run()
+    next(item for item in app.button if item.label == "Calculate car enclosure").click().run()
+
+    assert not app.exception
+    assert any("straight port is longer" in item.value for item in app.warning)
