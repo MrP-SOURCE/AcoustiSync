@@ -518,6 +518,12 @@ if mode == "HOME AUDIO":
                 f"- Left and right sides: {dimensions['side_panels'][0]:.1f} × "
                 f"{dimensions['side_panels'][1]:.1f} cm (2 panels)"
             )
+            if length > dimensions["internal_depth_cm"]:
+                st.warning(
+                    "The estimated straight port is longer than the suggested internal box depth. "
+                    "A folded port or revised port/box design is required; do not treat the straight-port "
+                    "dimensions as physically fitting."
+                )
             st.caption("This is a simple rectangular starting layout. It does not include a separate baffle, rebates, kerf, port routing, bracing or assembly allowances; verify the construction method and final net volume before cutting.")
             st.warning("Do not cut wood from these preliminary estimates without verifying driver datasheet values, port end corrections, fitment, and the final net-volume calculation.")
 
@@ -562,9 +568,23 @@ else:
             st.write(f"**Estimated usable box space: {net:.1f} litres.** Including the 1.5-litre driver/internal-parts allowance and approximately {port_displacement:.2f} litres of port displacement gives an estimated gross requirement of {gross:.1f} litres.")
             st.write(f"**Port tube starting size: {port_d:.1f} cm diameter × {length:.1f} cm long**, estimated for your selected {target_fb:.1f} Hz target.")
             st.caption(f"The simplified driver model estimates a tuning point near {result['fb_hz']:.1f} Hz before applying your selected port target.")
-            st.write(f"**Available rectangular envelope:** approximately {fit_l:.1f} L gross before taper, wheel arches, trim, and clearance.")
-            if gross > fit_l:
-                st.error("The estimated box volume exceeds the rectangular envelope. Recalculate with a smaller alignment or different enclosure approach.")
+            car_dimensions = rectangular_enclosure_dimensions(gross, 18.0)
+            st.write(
+                f"**Suggested box size (18 mm panels):** "
+                f"{car_dimensions['external_width_cm']:.1f} W × "
+                f"{car_dimensions['external_height_cm']:.1f} H × "
+                f"{car_dimensions['external_depth_cm']:.1f} D cm externally."
+            )
+            st.write(f"**Available rectangular envelope:** {trunk_l:.0f} W × {trunk_h:.0f} H × {trunk_d:.0f} D cm (about {fit_l:.1f} L before taper, trim and clearance).")
+            dimensions_fit = (
+                car_dimensions["external_width_cm"] <= trunk_l
+                and car_dimensions["external_height_cm"] <= trunk_h
+                and car_dimensions["external_depth_cm"] <= trunk_d
+            )
+            if not dimensions_fit:
+                st.error("The suggested rectangular box exceeds at least one entered vehicle dimension. Reduce the design or remeasure the usable boot space.")
+            if length > car_dimensions["internal_depth_cm"]:
+                st.warning("The estimated straight port is longer than the suggested internal box depth. A folded port or revised design is required; physical port routing is not yet modelled.")
             st.write("**Orientation starting point:**")
             st.write({"Hatchback":"Subwoofer and port rear-facing is a common starting experiment; test rear-facing versus upward-facing.","Sedan":"Rear-facing can work, but cabin coupling through the rear seat/pass-through strongly affects results.","SUV":"Rear-facing or upward-facing; compare response at the driver seat.","Truck":"Fitment and seat/wall coupling dominate; test the available orientations."}[vehicle])
             st.info("Cabin gain is vehicle-specific and cannot be accurately calculated from body style alone. No automatic +12 dB/octave correction is applied: measure in-car response or use a measured transfer function before EQ.")
