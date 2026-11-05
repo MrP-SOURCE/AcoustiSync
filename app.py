@@ -4,7 +4,8 @@ import numpy as np
 from acoustics import (
     wavelength, room_axial_modes, sabine_rt60, estimate_sealed_box, estimate_ported_box,
     port_length_cm, port_velocity, placement_guidance, lookup_driver,
-    gross_enclosure_volume_l, rectangular_enclosure_dimensions
+    gross_enclosure_volume_l, rectangular_enclosure_dimensions,
+    round_port_end_clearance_cm
 )
 
 st.set_page_config(page_title="AcoustiSync", page_icon="🔊", layout="wide")
@@ -525,11 +526,25 @@ if mode == "HOME AUDIO":
                 f"- Left and right sides: {dimensions['side_panels'][0]:.1f} × "
                 f"{dimensions['side_panels'][1]:.1f} cm (2 panels)"
             )
+            port_end_clearance = round_port_end_clearance_cm(
+                dimensions["internal_depth_cm"], length
+            )
             if length > dimensions["internal_depth_cm"]:
                 st.warning(
                     "The estimated straight port is longer than the suggested internal box depth. "
                     "A folded port or revised port/box design is required; do not treat the straight-port "
                     "dimensions as physically fitting."
+                )
+            elif port_end_clearance < port_d:
+                st.warning(
+                    f"The straight port leaves only {port_end_clearance:.1f} cm between its inner end "
+                    f"and the rear wall. Aim for at least one port diameter ({port_d:.1f} cm) of clearance; "
+                    "revise the port direction, length or enclosure before construction."
+                )
+            else:
+                st.caption(
+                    f"Estimated straight-port end clearance: {port_end_clearance:.1f} cm "
+                    f"({port_end_clearance / port_d:.1f} port diameters). Check manufacturer/design guidance."
                 )
             st.caption("This is a simple rectangular starting layout. It does not include a separate baffle, rebates, kerf, port routing, bracing or assembly allowances; verify the construction method and final net volume before cutting.")
             st.warning("Do not cut wood from these preliminary estimates without verifying driver datasheet values, port end corrections, fitment, and the final net-volume calculation.")
@@ -592,8 +607,22 @@ else:
                 st.error("The suggested rectangular box exceeds at least one entered vehicle dimension. Reduce the design or remeasure the usable boot space.")
             else:
                 st.success("The suggested rectangular box fits the entered rectangular envelope before allowing for trim, taper, bracing and installation clearance.")
+            port_end_clearance = round_port_end_clearance_cm(
+                car_dimensions["internal_depth_cm"], length
+            )
             if length > car_dimensions["internal_depth_cm"]:
                 st.warning("The estimated straight port is longer than the suggested internal box depth. A folded port or revised design is required; physical port routing is not yet modelled.")
+            elif port_end_clearance < port_d:
+                st.warning(
+                    f"The straight port leaves only {port_end_clearance:.1f} cm between its inner end "
+                    f"and the rear wall. Aim for at least one port diameter ({port_d:.1f} cm) of clearance; "
+                    "revise the port direction, length or enclosure before construction."
+                )
+            else:
+                st.caption(
+                    f"Estimated straight-port end clearance: {port_end_clearance:.1f} cm "
+                    f"({port_end_clearance / port_d:.1f} port diameters). Check design guidance."
+                )
             st.write("**Orientation starting point:**")
             st.write({"Hatchback":"Subwoofer and port rear-facing is a common starting experiment; test rear-facing versus upward-facing.","Sedan":"Rear-facing can work, but cabin coupling through the rear seat/pass-through strongly affects results.","SUV":"Rear-facing or upward-facing; compare response at the driver seat.","Truck":"Fitment and seat/wall coupling dominate; test the available orientations."}[vehicle])
             st.info("Cabin gain is vehicle-specific and cannot be accurately calculated from body style alone. No automatic +12 dB/octave correction is applied: measure in-car response or use a measured transfer function before EQ.")
