@@ -49,6 +49,15 @@ def test_ported_box_screening_estimate_is_positive():
     assert result["fb_hz"] > 0
 
 
+@pytest.mark.parametrize(
+    "fs_hz, qts, vas_l",
+    [(0, 0.42, 55.0), (30.0, 0, 55.0), (30.0, 0.42, 0)],
+)
+def test_ported_box_rejects_nonpositive_driver_inputs(fs_hz, qts, vas_l):
+    with pytest.raises(ValueError):
+        estimate_ported_box(fs_hz, qts, vas_l)
+
+
 def test_port_length_is_nonnegative():
     assert port_length_cm(78.54, 40.0, 32.0) >= 0
 
@@ -78,7 +87,6 @@ def test_unknown_driver_is_not_marked_found():
 def test_placement_guidance_mentions_measurement():
     result = placement_guidance(0.4, 0.5, 2.5, False, "Music")
     assert "Measure bass response" in result
-
 
 
 def test_sabine_rt60_uses_volume_and_absorption_area():
