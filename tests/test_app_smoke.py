@@ -68,6 +68,48 @@ def test_home_subwoofer_screening_options_render(sub_count):
             assert y_positions == pytest.approx([0.45, 4.55, 2.5, 2.5])
 
 
+def test_subwoofer_positions_stay_inside_minimum_room_at_maximum_clearances():
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    values = {
+        "Room length (m)": 2.0,
+        "Room width (m)": 2.0,
+        "Available speaker distance from front wall (m)": 2.0,
+        "Available distance from side wall (m)": 2.0,
+    }
+    for label, value in values.items():
+        next(item for item in app.number_input if item.label == label).set_value(value)
+    next(
+        item for item in app.selectbox
+        if item.label == "Number of subwoofers to screen"
+    ).set_value(4)
+    app.run()
+
+    calculate = next(
+        item for item in app.button
+        if item.label == "Calculate placement plan"
+    )
+    calculate.click().run()
+
+    assert not app.exception
+    coordinates = next(
+        item.value for item in app.dataframe
+        if hasattr(item.value, "columns")
+        and "Distance from left wall" in item.value.columns
+    )
+    x_positions = [
+        float(value.split()[0])
+        for value in coordinates["Distance from left wall"]
+    ]
+    y_positions = [
+        float(value.split()[0])
+        for value in coordinates["Distance from front wall"]
+    ]
+    assert all(0.0 < x < 2.0 for x in x_positions)
+    assert all(0.0 < y < 2.0 for y in y_positions)
+    assert x_positions == pytest.approx([1.0, 1.0, 0.4, 1.6])
+    assert y_positions == pytest.approx([0.4, 1.6, 1.0, 1.0])
+
+
 def test_car_enclosure_calculation_runs():
     app = AppTest.from_file(APP_PATH, default_timeout=15).run()
     app.radio[0].set_value("CAR AUDIO").run()
