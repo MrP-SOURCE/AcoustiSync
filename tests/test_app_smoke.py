@@ -125,6 +125,10 @@ def test_car_enclosure_calculation_runs():
     app.radio[0].set_value("CAR AUDIO").run()
     app.button[0].click().run()
     assert not app.exception
+    rendered = "\\n".join(item.value for item in app.markdown)
+    assert "Estimated usable box space" in rendered
+    assert "Port tube starting size" in rendered
+    assert "Available rectangular envelope" in rendered
 
 
 def test_car_component_placement_runs():
@@ -144,3 +148,14 @@ def test_home_diy_high_qts_is_handled_without_app_crash():
     design_button.click().run()
     assert not app.exception
     assert any("Qtc 0.707" in warning.value for warning in app.warning)
+
+
+def test_home_diy_enclosure_renders_volume_and_port_outputs():
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    app.radio[1].set_value("Driver-in-hand / DIY enclosure").run()
+    next(item for item in app.button if item.label == "Design enclosure").click().run()
+    assert not app.exception
+    rendered = "\\n".join(item.value for item in app.markdown)
+    assert "Port tube starting size" in rendered
+    assert "estimated gross internal volume" in rendered
+    assert "port displacement" in rendered
