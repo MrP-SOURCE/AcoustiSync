@@ -130,8 +130,8 @@ def test_car_enclosure_calculation_runs():
     assert "Port tube starting size" in rendered
     assert "Available rectangular envelope" in rendered
     assert "Suggested box size" in rendered
-    # The dimensional fit message is rendered through st.write, not st.markdown.
-    # The default dimensions should not trigger an error.
+    # Streamlit exposes success/error callouts separately from markdown.
+    assert app.success or app.error
     assert not app.error
 
 
