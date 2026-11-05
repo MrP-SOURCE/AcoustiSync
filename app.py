@@ -583,6 +583,8 @@ else:
             )
             if not dimensions_fit:
                 st.error("The suggested rectangular box exceeds at least one entered vehicle dimension. Reduce the design or remeasure the usable boot space.")
+            else:
+                st.success("The suggested rectangular box fits the entered rectangular envelope before allowing for trim, taper, bracing and installation clearance.")
             if length > car_dimensions["internal_depth_cm"]:
                 st.warning("The estimated straight port is longer than the suggested internal box depth. A folded port or revised design is required; physical port routing is not yet modelled.")
             st.write("**Orientation starting point:**")
