@@ -7,7 +7,7 @@ Streamlit-based audio setup assistant for home and car audio.
 - Home audio: finished-speaker placement guidance, ideal axial room-mode frequency estimates, an illustrative 3D axial-mode pressure field, and a room layout diagram.
 - Home acoustics: Sabine RT60 screening estimate using room dimensions, selected wall/floor/ceiling finishes, and an adjustable furnishings absorption allowance.
 - Home DIY: preliminary sealed and ported enclosure screening calculations, round-port length estimate, and internal/gross volume guidance.
-- Car audio: preliminary subwoofer enclosure sizing against a rectangular boot envelope, plus component-speaker staging guidance.
+- Car audio: preliminary subwoofer enclosure sizing against a rectangular boot envelope, with editable driver and bracing displacement allowances, round-port clearance warnings, plus component-speaker staging guidance.
 
 ## Run locally
 
