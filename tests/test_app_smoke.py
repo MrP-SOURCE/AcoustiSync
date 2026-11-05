@@ -68,7 +68,17 @@ def test_home_subwoofer_screening_options_render(sub_count):
             assert y_positions == pytest.approx([0.45, 4.55, 2.5, 2.5])
 
 
-def test_subwoofer_positions_stay_inside_minimum_room_at_maximum_clearances():
+@pytest.mark.parametrize(
+    "sub_count, expected_x, expected_y",
+    [
+        (1, [1.0], [0.4]),
+        (2, [1.0, 1.0], [0.4, 1.6]),
+        (4, [1.0, 1.0, 0.4, 1.6], [0.4, 1.6, 1.0, 1.0]),
+    ],
+)
+def test_subwoofer_positions_stay_inside_minimum_room_at_maximum_clearances(
+    sub_count, expected_x, expected_y
+):
     app = AppTest.from_file(APP_PATH, default_timeout=15).run()
     values = {
         "Room length (m)": 2.0,
@@ -81,7 +91,7 @@ def test_subwoofer_positions_stay_inside_minimum_room_at_maximum_clearances():
     next(
         item for item in app.selectbox
         if item.label == "Number of subwoofers to screen"
-    ).set_value(4)
+    ).set_value(sub_count)
     app.run()
 
     calculate = next(
@@ -106,8 +116,8 @@ def test_subwoofer_positions_stay_inside_minimum_room_at_maximum_clearances():
     ]
     assert all(0.0 < x < 2.0 for x in x_positions)
     assert all(0.0 < y < 2.0 for y in y_positions)
-    assert x_positions == pytest.approx([1.0, 1.0, 0.4, 1.6])
-    assert y_positions == pytest.approx([0.4, 1.6, 1.0, 1.0])
+    assert x_positions == pytest.approx(expected_x)
+    assert y_positions == pytest.approx(expected_y)
 
 
 def test_car_enclosure_calculation_runs():
