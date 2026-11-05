@@ -17,13 +17,22 @@ def lookup_driver(model: str) -> dict:
     return {"model": model or "", "found": False, "Fs": 28.0, "Qts": 0.42, "Vas": 60.0, "Re": 3.6, "Xmax": 8.0}
 
 def wavelength(freq_hz: float, speed: float = SPEED_OF_SOUND) -> float:
-    if freq_hz <= 0: raise ValueError("Frequency must be positive.")
+    """Return wavelength in metres for a positive frequency and sound speed."""
+    if not math.isfinite(freq_hz) or not math.isfinite(speed):
+        raise ValueError("Frequency and sound speed must be finite.")
+    if freq_hz <= 0 or speed <= 0:
+        raise ValueError("Frequency and sound speed must be positive.")
     return speed / freq_hz
 
 def room_axial_modes(length_m: float, width_m: float, height_m: float, max_order: int = 4):
     """Return (axis, order, Hz) ideal axial modes."""
-    if min(length_m, width_m, height_m) <= 0:
+    dimensions = (length_m, width_m, height_m)
+    if not all(math.isfinite(value) for value in dimensions):
+        raise ValueError("Room dimensions must be finite.")
+    if min(dimensions) <= 0:
         raise ValueError("Room dimensions must be positive.")
+    if not isinstance(max_order, int) or isinstance(max_order, bool) or max_order < 1:
+        raise ValueError("Maximum mode order must be a positive integer.")
     modes = []
     for axis, dim in (("Length", length_m), ("Width", width_m), ("Height", height_m)):
         for n in range(1, max_order + 1):
@@ -32,6 +41,8 @@ def room_axial_modes(length_m: float, width_m: float, height_m: float, max_order
 
 def sabine_rt60(volume_m3: float, absorption_sabins: float) -> float:
     """Estimate mid-band reverberation time using Sabine: RT60 = 0.161 V / A."""
+    if not math.isfinite(volume_m3) or not math.isfinite(absorption_sabins):
+        raise ValueError("Room volume and equivalent absorption area must be finite.")
     if volume_m3 <= 0 or absorption_sabins <= 0:
         raise ValueError("Room volume and equivalent absorption area must be positive.")
     return 0.161 * volume_m3 / absorption_sabins
@@ -39,6 +50,9 @@ def sabine_rt60(volume_m3: float, absorption_sabins: float) -> float:
 
 def estimate_sealed_box(fs_hz: float, qts: float, vas_l: float, target_qtc: float = 0.707):
     """Classic sealed-box approximation: Qtc = Qts*sqrt(1+Vas/Vb)."""
+    values = (fs_hz, qts, vas_l, target_qtc)
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("Fs, Qts, Vas and target Qtc must be finite.")
     if fs_hz <= 0 or qts <= 0 or vas_l <= 0 or target_qtc <= qts:
         raise ValueError("Need positive Fs/Qts/Vas and target Qtc greater than Qts.")
     vb = vas_l / ((target_qtc / qts) ** 2 - 1)
@@ -47,6 +61,8 @@ def estimate_sealed_box(fs_hz: float, qts: float, vas_l: float, target_qtc: floa
 
 def estimate_ported_box(fs_hz: float, qts: float, vas_l: float):
     """Rough QB3-like screening estimate; not a substitute for full alignment modelling."""
+    if not all(math.isfinite(value) for value in (fs_hz, qts, vas_l)):
+        raise ValueError("Fs, Qts and Vas must be finite.")
     if min(fs_hz, qts, vas_l) <= 0:
         raise ValueError("Fs, Qts and Vas must be positive.")
     # Empirical approximation used only as a starting point.
