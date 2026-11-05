@@ -6,6 +6,7 @@ from acoustics import (
     estimate_ported_box,
     estimate_sealed_box,
     gross_enclosure_volume_l,
+    rectangular_enclosure_dimensions,
     lookup_driver,
     port_length_cm,
     placement_guidance,
@@ -144,3 +145,24 @@ def test_port_length_rejects_nonfinite_or_negative_end_correction(values):
 def test_gross_enclosure_volume_rejects_nonfinite_inputs(values):
     with pytest.raises(ValueError):
         gross_enclosure_volume_l(*values)
+
+
+def test_rectangular_enclosure_dimensions_match_target_volume_and_panel_thickness():
+    result = rectangular_enclosure_dimensions(60.0, 18.0)
+    internal_volume = (
+        result["internal_width_cm"]
+        * result["internal_height_cm"]
+        * result["internal_depth_cm"]
+        / 1000
+    )
+    assert internal_volume == pytest.approx(60.0)
+    assert result["external_width_cm"] - result["internal_width_cm"] == pytest.approx(3.6)
+    assert result["front_back_panels"][2] == 2
+    assert result["top_bottom_panels"][2] == 2
+    assert result["side_panels"][2] == 2
+
+
+@pytest.mark.parametrize("values", [(0, 18, 1.5, 1), (40, 0, 1.5, 1), (40, 18, 0, 1)])
+def test_rectangular_enclosure_dimensions_reject_invalid_inputs(values):
+    with pytest.raises(ValueError):
+        rectangular_enclosure_dimensions(*values)
