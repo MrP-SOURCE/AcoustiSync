@@ -247,7 +247,6 @@ def test_ported_box_rejects_nonfinite_inputs(values):
 @pytest.mark.parametrize(
     "values",
     [
-        (100.0, 500.0, 12.0, 35.0, 50.0),
         (float("nan"), 500.0, 12.0, 35.0, 50.0),
         (100.0, float("inf"), 12.0, 35.0, 50.0),
         (100.0, 500.0, float("nan"), 35.0, 50.0),
