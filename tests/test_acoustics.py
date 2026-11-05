@@ -181,3 +181,64 @@ def test_round_port_end_clearance(depth, length, expected):
 def test_round_port_end_clearance_rejects_invalid_inputs(values):
     with pytest.raises(ValueError):
         round_port_end_clearance_cm(*values)
+
+
+@pytest.mark.parametrize("frequency, speed", [
+    (float("nan"), 343.0),
+    (80.0, float("inf")),
+    (0.0, 343.0),
+    (80.0, 0.0),
+])
+def test_wavelength_rejects_nonfinite_or_nonpositive_inputs(frequency, speed):
+    with pytest.raises(ValueError):
+        wavelength(frequency, speed)
+
+
+@pytest.mark.parametrize(
+    "dimensions, max_order",
+    [
+        ((float("nan"), 4.0, 2.5), 4),
+        ((5.0, float("inf"), 2.5), 4),
+        ((5.0, 4.0, 2.5), 0),
+        ((5.0, 4.0, 2.5), 1.5),
+    ],
+)
+def test_room_modes_rejects_nonfinite_dimensions_or_invalid_order(dimensions, max_order):
+    with pytest.raises(ValueError):
+        room_axial_modes(*dimensions, max_order=max_order)
+
+
+@pytest.mark.parametrize("volume, absorption", [
+    (float("nan"), 10.0),
+    (10.0, float("inf")),
+])
+def test_sabine_rt60_rejects_nonfinite_inputs(volume, absorption):
+    with pytest.raises(ValueError):
+        sabine_rt60(volume, absorption)
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        (float("nan"), 0.42, 55.0, 0.707),
+        (30.0, float("inf"), 55.0, 0.707),
+        (30.0, 0.42, float("nan"), 0.707),
+        (30.0, 0.42, 55.0, float("inf")),
+    ],
+)
+def test_sealed_box_rejects_nonfinite_inputs(values):
+    with pytest.raises(ValueError):
+        estimate_sealed_box(*values)
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        (float("nan"), 0.42, 55.0),
+        (30.0, float("inf"), 55.0),
+        (30.0, 0.42, float("nan")),
+    ],
+)
+def test_ported_box_rejects_nonfinite_inputs(values):
+    with pytest.raises(ValueError):
+        estimate_ported_box(*values)
