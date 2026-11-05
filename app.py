@@ -529,7 +529,12 @@ if mode == "HOME AUDIO":
             port_end_clearance = round_port_end_clearance_cm(
                 dimensions["internal_depth_cm"], length
             )
-            if length > dimensions["internal_depth_cm"]:
+            if length <= 0:
+                st.warning(
+                    "The selected port diameter, box volume and tuning target produce no usable "
+                    "straight-port length in this approximation. Revise the port dimensions or target."
+                )
+            elif length > dimensions["internal_depth_cm"]:
                 st.warning(
                     "The estimated straight port is longer than the suggested internal box depth. "
                     "A folded port or revised port/box design is required; do not treat the straight-port "
@@ -610,7 +615,12 @@ else:
             port_end_clearance = round_port_end_clearance_cm(
                 car_dimensions["internal_depth_cm"], length
             )
-            if length > car_dimensions["internal_depth_cm"]:
+            if length <= 0:
+                st.warning(
+                    "The selected port diameter, box volume and tuning target produce no usable "
+                    "straight-port length in this approximation. Revise the port dimensions or target."
+                )
+            elif length > car_dimensions["internal_depth_cm"]:
                 st.warning("The estimated straight port is longer than the suggested internal box depth. A folded port or revised design is required; physical port routing is not yet modelled.")
             elif port_end_clearance < port_d:
                 st.warning(
