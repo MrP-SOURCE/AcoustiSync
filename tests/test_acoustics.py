@@ -118,3 +118,29 @@ def test_gross_enclosure_volume_includes_driver_bracing_and_port():
 def test_gross_enclosure_volume_rejects_invalid_inputs(values):
     with pytest.raises(ValueError):
         gross_enclosure_volume_l(*values)
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        (float("nan"), 40.0, 32.0, 0.732),
+        (78.54, float("inf"), 32.0, 0.732),
+        (78.54, 40.0, 32.0, float("nan")),
+        (78.54, 40.0, 32.0, -0.1),
+    ],
+)
+def test_port_length_rejects_nonfinite_or_negative_end_correction(values):
+    with pytest.raises(ValueError):
+        port_length_cm(*values)
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        (float("nan"), 1, 1, 1, 1),
+        (10, float("inf"), 1, 1, 1),
+    ],
+)
+def test_gross_enclosure_volume_rejects_nonfinite_inputs(values):
+    with pytest.raises(ValueError):
+        gross_enclosure_volume_l(*values)
