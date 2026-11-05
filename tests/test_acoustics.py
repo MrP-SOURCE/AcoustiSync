@@ -5,6 +5,7 @@ import pytest
 from acoustics import (
     estimate_ported_box,
     estimate_sealed_box,
+    gross_enclosure_volume_l,
     lookup_driver,
     port_length_cm,
     placement_guidance,
@@ -88,3 +89,24 @@ def test_sabine_rt60_uses_volume_and_absorption_area():
 def test_sabine_rt60_rejects_nonpositive_inputs(volume, absorption):
     with pytest.raises(ValueError):
         sabine_rt60(volume, absorption)
+
+
+def test_gross_enclosure_volume_includes_driver_bracing_and_port():
+    result = gross_enclosure_volume_l(40.0, 1.2, 0.8, 78.54, 20.0)
+    assert result["port_displacement_l"] == pytest.approx(1.5708)
+    assert result["gross_volume_l"] == pytest.approx(43.5708)
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        (0, 1, 1, 10, 10),
+        (10, -1, 1, 10, 10),
+        (10, 1, -1, 10, 10),
+        (10, 1, 1, -10, 10),
+        (10, 1, 1, 10, -10),
+    ],
+)
+def test_gross_enclosure_volume_rejects_invalid_inputs(values):
+    with pytest.raises(ValueError):
+        gross_enclosure_volume_l(*values)
