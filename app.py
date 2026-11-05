@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from acoustics import (
     wavelength, room_axial_modes, sabine_rt60, estimate_sealed_box, estimate_ported_box,
-    port_length_cm, port_velocity, placement_guidance, lookup_driver
+    port_length_cm, port_velocity, placement_guidance, lookup_driver,
+    gross_enclosure_volume_l
 )
 
 st.set_page_config(page_title="AcoustiSync", page_icon="🔊", layout="wide")
@@ -487,8 +488,9 @@ if mode == "HOME AUDIO":
             net = ported["vb_l"]
             area = 3.14159 * (port_d/2)**2
             length = port_length_cm(area, net, target_fb)
-            port_displacement = area * length / 1000.0
-            gross = net + driver_disp + brace_disp + port_displacement
+            volume_result = gross_enclosure_volume_l(net, driver_disp, brace_disp, area, length)
+            port_displacement = volume_result["port_displacement_l"]
+            gross = volume_result["gross_volume_l"]
             st.write(f"**Port tube starting size: {port_d:.1f} cm inside diameter and approximately {length:.1f} cm long.**")
             st.caption("The port is the air tube in the box. Its size affects bass tuning. Final length may need adjustment for flares, bends and the actual box.")
             st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L including driver, bracing and approximately {port_displacement:.2f} L of port displacement.")
@@ -522,8 +524,9 @@ else:
             net = result["vb_l"]
             area = 3.14159 * (port_d/2)**2
             length = port_length_cm(area, net, target_fb)
-            port_displacement = area * length / 1000.0
-            gross = net + 1.5 + port_displacement
+            volume_result = gross_enclosure_volume_l(net, 1.5, 0.0, area, length)
+            port_displacement = volume_result["port_displacement_l"]
+            gross = volume_result["gross_volume_l"]
             max_l = trunk_l/100
             max_h = trunk_h/100
             max_d = trunk_d/100
