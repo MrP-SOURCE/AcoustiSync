@@ -4,7 +4,7 @@ import numpy as np
 from acoustics import (
     wavelength, room_axial_modes, sabine_rt60, estimate_sealed_box, estimate_ported_box,
     port_length_cm, port_velocity, placement_guidance, lookup_driver,
-    gross_enclosure_volume_l
+    gross_enclosure_volume_l, rectangular_enclosure_dimensions
 )
 
 st.set_page_config(page_title="AcoustiSync", page_icon="🔊", layout="wide")
@@ -495,8 +495,30 @@ if mode == "HOME AUDIO":
             st.caption("The port is the air tube in the box. Its size affects bass tuning. Final length may need adjustment for flares, bends and the actual box.")
             st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L including driver, bracing and approximately {port_displacement:.2f} L of port displacement.")
             st.write(f"**Air velocity check:** requires amplifier power, Sd, and excursion model; not inferred from T/S values alone. Avoid assuming this port is quiet at high output.")
-            st.write(f"**Panel basis:** {wood:.0f} mm material. External rectangular dimensions add {2 * wood:.0f} mm to each corresponding internal dimension.")
-            st.write("**Cutting-sheet basis:** choose internal dimensions that multiply to gross volume (L × W × H / 1000 = litres). Include bracing, driver cutout, port path, and assembly method before cutting.")
+            dimensions = rectangular_enclosure_dimensions(gross, wood)
+            st.write(
+                f"**Suggested internal enclosure size:** "
+                f"{dimensions['internal_width_cm']:.1f} W × "
+                f"{dimensions['internal_height_cm']:.1f} H × "
+                f"{dimensions['internal_depth_cm']:.1f} D cm."
+            )
+            st.write(
+                f"**Suggested external size:** "
+                f"{dimensions['external_width_cm']:.1f} W × "
+                f"{dimensions['external_height_cm']:.1f} H × "
+                f"{dimensions['external_depth_cm']:.1f} D cm "
+                f"using {wood:.0f} mm panels."
+            )
+            st.markdown("**Basic six-panel cut list**")
+            st.write(
+                f"- Front and back: {dimensions['front_back_panels'][0]:.1f} × "
+                f"{dimensions['front_back_panels'][1]:.1f} cm (2 panels)\\n"
+                f"- Top and bottom: {dimensions['top_bottom_panels'][0]:.1f} × "
+                f"{dimensions['top_bottom_panels'][1]:.1f} cm (2 panels)\\n"
+                f"- Left and right sides: {dimensions['side_panels'][0]:.1f} × "
+                f"{dimensions['side_panels'][1]:.1f} cm (2 panels)"
+            )
+            st.caption("This is a simple rectangular starting layout. It does not include a separate baffle, rebates, kerf, port routing, bracing or assembly allowances; verify the construction method and final net volume before cutting.")
             st.warning("Do not cut wood from these preliminary estimates without verifying driver datasheet values, port end corrections, fitment, and the final net-volume calculation.")
 
 else:
