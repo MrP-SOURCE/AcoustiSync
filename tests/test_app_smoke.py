@@ -159,3 +159,5 @@ def test_home_diy_enclosure_renders_volume_and_port_outputs():
     assert "Port tube starting size" in rendered
     assert "estimated gross internal volume" in rendered
     assert "port displacement" in rendered
+    assert "Suggested internal enclosure size" in rendered
+    assert "Basic six-panel cut list" in rendered
