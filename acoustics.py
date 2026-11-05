@@ -89,6 +89,38 @@ def gross_enclosure_volume_l(
     }
 
 
+def rectangular_enclosure_dimensions(
+    gross_volume_l: float,
+    panel_thickness_mm: float = 18.0,
+    width_height_ratio: float = 1.5,
+    depth_height_ratio: float = 1.0,
+) -> dict:
+    """Suggest a rectangular enclosure size and simple six-panel cut list."""
+    values = (gross_volume_l, panel_thickness_mm, width_height_ratio, depth_height_ratio)
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("Enclosure dimensions must be finite.")
+    if gross_volume_l <= 0 or panel_thickness_mm <= 0 or width_height_ratio <= 0 or depth_height_ratio <= 0:
+        raise ValueError("Volume, panel thickness and dimension ratios must be positive.")
+    internal_height_cm = (gross_volume_l * 1000 / (width_height_ratio * depth_height_ratio)) ** (1 / 3)
+    internal_width_cm = internal_height_cm * width_height_ratio
+    internal_depth_cm = internal_height_cm * depth_height_ratio
+    thickness_cm = panel_thickness_mm / 10
+    external_width_cm = internal_width_cm + 2 * thickness_cm
+    external_height_cm = internal_height_cm + 2 * thickness_cm
+    external_depth_cm = internal_depth_cm + 2 * thickness_cm
+    return {
+        "internal_width_cm": internal_width_cm,
+        "internal_height_cm": internal_height_cm,
+        "internal_depth_cm": internal_depth_cm,
+        "external_width_cm": external_width_cm,
+        "external_height_cm": external_height_cm,
+        "external_depth_cm": external_depth_cm,
+        "front_back_panels": (external_width_cm, external_height_cm, 2),
+        "top_bottom_panels": (internal_width_cm, internal_depth_cm, 2),
+        "side_panels": (internal_depth_cm, internal_height_cm, 2),
+    }
+
+
 def port_velocity(power_w: float, sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
     """Very simplified sinusoidal volume-velocity estimate; needs real driver parameters."""
     if min(power_w, sd_cm2, xmax_mm, freq_hz, port_area_cm2) <= 0:
