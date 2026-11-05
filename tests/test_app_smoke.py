@@ -53,6 +53,19 @@ def test_home_subwoofer_screening_options_render(sub_count):
         assert list(coordinate_tables[0]["Subwoofer"]) == [
             f"SUB {index}" for index in range(1, sub_count + 1)
         ]
+        coordinates = coordinate_tables[0]
+        x_positions = [float(value.split()[0]) for value in coordinates["Distance from left wall"]]
+        y_positions = [float(value.split()[0]) for value in coordinates["Distance from front wall"]]
+        assert all(0.0 < x < 3.8 for x in x_positions)
+        assert all(0.0 < y < 5.0 for y in y_positions)
+        if sub_count == 1:
+            assert (x_positions[0], y_positions[0]) == pytest.approx((1.9, 0.45))
+        elif sub_count == 2:
+            assert x_positions == pytest.approx([1.9, 1.9])
+            assert y_positions == pytest.approx([0.45, 4.55])
+        else:
+            assert x_positions == pytest.approx([1.9, 1.9, 0.6, 3.2])
+            assert y_positions == pytest.approx([0.45, 4.55, 2.5, 2.5])
 
 
 def test_car_enclosure_calculation_runs():
