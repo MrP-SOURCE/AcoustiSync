@@ -130,6 +130,8 @@ def test_car_enclosure_calculation_runs():
     assert "Port tube starting size" in rendered
     assert "Available rectangular envelope" in rendered
     assert "Suggested box size" in rendered
+    assert "1.0 L driver displacement" in rendered
+    assert "0.5 L bracing displacement" in rendered
     # Streamlit exposes success/error callouts separately from markdown.
     assert app.success or app.error
     assert not app.error
