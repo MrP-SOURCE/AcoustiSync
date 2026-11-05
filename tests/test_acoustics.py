@@ -9,6 +9,7 @@ from acoustics import (
     rectangular_enclosure_dimensions,
     lookup_driver,
     port_length_cm,
+    round_port_end_clearance_cm,
     placement_guidance,
     room_axial_modes,
     sabine_rt60,
@@ -166,3 +167,17 @@ def test_rectangular_enclosure_dimensions_match_target_volume_and_panel_thicknes
 def test_rectangular_enclosure_dimensions_reject_invalid_inputs(values):
     with pytest.raises(ValueError):
         rectangular_enclosure_dimensions(*values)
+
+
+@pytest.mark.parametrize(
+    "depth, length, expected",
+    [(40.0, 20.0, 20.0), (30.0, 30.0, 0.0), (25.0, 32.0, -7.0)],
+)
+def test_round_port_end_clearance(depth, length, expected):
+    assert round_port_end_clearance_cm(depth, length) == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("values", [(0, 1), (1, -1), (float("nan"), 1)])
+def test_round_port_end_clearance_rejects_invalid_inputs(values):
+    with pytest.raises(ValueError):
+        round_port_end_clearance_cm(*values)
