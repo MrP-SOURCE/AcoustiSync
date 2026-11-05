@@ -130,8 +130,10 @@ def test_car_enclosure_calculation_runs():
     assert "Port tube starting size" in rendered
     assert "Available rectangular envelope" in rendered
     assert "Suggested box size" in rendered
-    assert ("exceeds at least one entered vehicle dimension" in rendered)
-    or ("fits the entered vehicle dimensions" in rendered)
+    assert (
+        "exceeds at least one entered vehicle dimension" in rendered
+        or "fits the entered vehicle dimensions" in rendered
+    )
 
 
 def test_car_component_placement_runs():
