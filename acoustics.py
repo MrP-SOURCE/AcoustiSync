@@ -67,6 +67,16 @@ def port_length_cm(area_cm2: float, vb_l: float, fb_hz: float, end_correction_fa
     length = (23562.5 * diameter_cm**2 / (fb_hz**2 * vb_l)) - end_correction_factor * diameter_cm
     return max(0.0, length)
 
+def round_port_end_clearance_cm(internal_depth_cm: float, port_length_cm_value: float) -> float:
+    """Return remaining axial clearance between a straight port end and rear wall."""
+    values = (internal_depth_cm, port_length_cm_value)
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("Port depth and length must be finite.")
+    if internal_depth_cm <= 0 or port_length_cm_value < 0:
+        raise ValueError("Internal depth must be positive and port length cannot be negative.")
+    return internal_depth_cm - port_length_cm_value
+
+
 def gross_enclosure_volume_l(
     net_volume_l: float,
     driver_displacement_l: float = 0.0,
