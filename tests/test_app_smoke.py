@@ -215,3 +215,23 @@ def test_listener_position_stays_inside_room(
     assert speaker_y + 0.35 <= listener_y <= room_l - 0.45
     if requested_listener_y > room_l - 0.45:
         assert listener_y == pytest.approx(room_l - 0.45)
+
+def test_car_enclosure_uses_editable_driver_and_bracing_displacement():
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    app.radio[0].set_value("CAR AUDIO").run()
+    next(
+        item for item in app.number_input
+        if item.label == "Driver displacement (litres)"
+    ).set_value(2.0)
+    next(
+        item for item in app.number_input
+        if item.label == "Bracing displacement (litres)"
+    ).set_value(1.0)
+    next(
+        item for item in app.button
+        if item.label == "Calculate car enclosure"
+    ).click().run()
+
+    assert not app.exception
+    rendered = "\\n".join(item.value for item in app.markdown)
+    assert "2.0 L driver displacement, 1.0 L bracing" in rendered
