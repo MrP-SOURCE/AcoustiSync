@@ -65,6 +65,26 @@ def port_length_cm(area_cm2: float, vb_l: float, fb_hz: float, end_correction_fa
     length = (23562.5 * diameter_cm**2 / (fb_hz**2 * vb_l)) - end_correction_factor * diameter_cm
     return max(0.0, length)
 
+def gross_enclosure_volume_l(
+    net_volume_l: float,
+    driver_displacement_l: float = 0.0,
+    bracing_displacement_l: float = 0.0,
+    port_area_cm2: float = 0.0,
+    port_length_cm_value: float = 0.0,
+) -> dict:
+    """Estimate gross internal volume including driver, bracing and straight-port displacement."""
+    values = (net_volume_l, driver_displacement_l, bracing_displacement_l,
+              port_area_cm2, port_length_cm_value)
+    if net_volume_l <= 0 or any(value < 0 for value in values[1:]):
+        raise ValueError("Net volume must be positive; displacement and port dimensions cannot be negative.")
+    port_displacement_l = port_area_cm2 * port_length_cm_value / 1000.0
+    return {
+        "port_displacement_l": port_displacement_l,
+        "gross_volume_l": net_volume_l + driver_displacement_l
+        + bracing_displacement_l + port_displacement_l,
+    }
+
+
 def port_velocity(power_w: float, sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
     """Very simplified sinusoidal volume-velocity estimate; needs real driver parameters."""
     if min(power_w, sd_cm2, xmax_mm, freq_hz, port_area_cm2) <= 0:
