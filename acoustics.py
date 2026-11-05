@@ -149,7 +149,10 @@ def rectangular_enclosure_dimensions(
 
 def port_velocity(power_w: float, sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
     """Very simplified sinusoidal volume-velocity estimate; needs real driver parameters."""
-    if min(power_w, sd_cm2, xmax_mm, freq_hz, port_area_cm2) <= 0:
+    values = (power_w, sd_cm2, xmax_mm, freq_hz, port_area_cm2)
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("Power, cone area, excursion, frequency and port area must be finite.")
+    if min(values) <= 0:
         raise ValueError("All inputs must be positive.")
     # Cone peak displacement volume (m^3), then peak velocity through port.
     displacement_m3 = sd_cm2 * 1e-4 * xmax_mm * 1e-3
