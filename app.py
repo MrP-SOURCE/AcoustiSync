@@ -485,12 +485,13 @@ if mode == "HOME AUDIO":
             st.caption(f"The rough model tuning estimate is {ported['fb_hz']:.1f} Hz. The port dimensions below use your selected target of {target_fb:.1f} Hz.")
             st.caption("These are screening estimates, not a validated alignment. Final design needs full T/S data (including Qes/Qms, Sd, Pe and excursion), response modelling, and measurement.")
             net = ported["vb_l"]
-            gross = net + driver_disp + brace_disp
             area = 3.14159 * (port_d/2)**2
             length = port_length_cm(area, net, target_fb)
+            port_displacement = area * length / 1000.0
+            gross = net + driver_disp + brace_disp + port_displacement
             st.write(f"**Port tube starting size: {port_d:.1f} cm inside diameter and approximately {length:.1f} cm long.**")
             st.caption("The port is the air tube in the box. Its size affects bass tuning. Final length may need adjustment for flares, bends and the actual box.")
-            st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L after adding driver/bracing displacement.")
+            st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L including driver, bracing and approximately {port_displacement:.2f} L of port displacement.")
             st.write(f"**Air velocity check:** requires amplifier power, Sd, and excursion model; not inferred from T/S values alone. Avoid assuming this port is quiet at high output.")
             st.write(f"**Panel basis:** {wood:.0f} mm material. External rectangular dimensions add {2 * wood:.0f} mm to each corresponding internal dimension.")
             st.write("**Cutting-sheet basis:** choose internal dimensions that multiply to gross volume (L × W × H / 1000 = litres). Include bracing, driver cutout, port path, and assembly method before cutting.")
@@ -519,9 +520,10 @@ else:
         if st.button("Calculate car enclosure", type="primary"):
             result = estimate_ported_box(fs, qts, vas)
             net = result["vb_l"]
-            gross = net + 1.5
             area = 3.14159 * (port_d/2)**2
             length = port_length_cm(area, net, target_fb)
+            port_displacement = area * length / 1000.0
+            gross = net + 1.5 + port_displacement
             max_l = trunk_l/100
             max_h = trunk_h/100
             max_d = trunk_d/100
@@ -532,7 +534,7 @@ else:
                 show_equipment_visual("sealed_box", f"{model} · sealed concept", "Conceptual sealed enclosure. This is a visual reference, not a cut-ready design.")
             with box_right:
                 show_equipment_visual("ported_box", f"{model} · ported concept", "Conceptual ported enclosure with visible port opening. Dimensions are calculated separately below.")
-            st.write(f"**Estimated usable box space: {net:.1f} litres.** Allowing 1.5 litres for the driver and internal parts gives an estimated gross requirement of {gross:.1f} litres.")
+            st.write(f"**Estimated usable box space: {net:.1f} litres.** Including the 1.5-litre driver/internal-parts allowance and approximately {port_displacement:.2f} litres of port displacement gives an estimated gross requirement of {gross:.1f} litres.")
             st.write(f"**Port tube starting size: {port_d:.1f} cm diameter × {length:.1f} cm long**, estimated for your selected {target_fb:.1f} Hz target.")
             st.caption(f"The simplified driver model estimates a tuning point near {result['fb_hz']:.1f} Hz before applying your selected port target.")
             st.write(f"**Available rectangular envelope:** approximately {fit_l:.1f} L gross before taper, wheel arches, trim, and clearance.")
