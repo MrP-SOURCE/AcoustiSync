@@ -132,7 +132,7 @@ def test_car_enclosure_calculation_runs():
     assert "Suggested box size" in rendered
     assert (
         "exceeds at least one entered vehicle dimension" in rendered
-        or "fits the entered vehicle dimensions" in rendered
+        or "fits the entered rectangular envelope" in rendered
     )
 
 
