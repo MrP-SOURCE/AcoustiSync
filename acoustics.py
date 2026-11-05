@@ -57,8 +57,10 @@ def estimate_ported_box(fs_hz: float, qts: float, vas_l: float):
 
 def port_length_cm(area_cm2: float, vb_l: float, fb_hz: float, end_correction_factor: float = 0.732):
     """Round-port estimate in cm; end_correction_factor multiplies port diameter."""
-    if area_cm2 <= 0 or vb_l <= 0 or fb_hz <= 0:
-        raise ValueError("Port area, box volume and tuning frequency must be positive.")
+    if not all(math.isfinite(value) for value in (area_cm2, vb_l, fb_hz, end_correction_factor)):
+        raise ValueError("Port dimensions, tuning frequency and end correction must be finite.")
+    if area_cm2 <= 0 or vb_l <= 0 or fb_hz <= 0 or end_correction_factor < 0:
+        raise ValueError("Port area, box volume and tuning frequency must be positive; end correction cannot be negative.")
     # Convert area to equivalent round-port diameter, then apply the standard
     # diameter-based approximation. 23562.5 assumes D in cm and Vb in litres.
     diameter_cm = math.sqrt(4.0 * area_cm2 / math.pi)
@@ -75,6 +77,8 @@ def gross_enclosure_volume_l(
     """Estimate gross internal volume including driver, bracing and straight-port displacement."""
     values = (net_volume_l, driver_displacement_l, bracing_displacement_l,
               port_area_cm2, port_length_cm_value)
+    if not all(math.isfinite(value) for value in values):
+        raise ValueError("Enclosure volumes and port dimensions must be finite.")
     if net_volume_l <= 0 or any(value < 0 for value in values[1:]):
         raise ValueError("Net volume must be positive; displacement and port dimensions cannot be negative.")
     port_displacement_l = port_area_cm2 * port_length_cm_value / 1000.0
