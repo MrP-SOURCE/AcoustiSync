@@ -265,7 +265,7 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
     ax.text(room_w / 2, room_l + 0.19, f"{room_w:.2f} m",
             ha="center", va="bottom", fontsize=8)
     ax.annotate("", xy=(-0.22, 0), xytext=(-0.22, room_l),
-                arrowprops=dict(arrowstyle="<->", color="#333333", lw=1))
+                arrowprops=dict(arrowstyle="<->", color="#9aafc2", lw=1))
     ax.text(-0.29, room_l / 2, f"{room_l:.2f} m",
             ha="center", va="center", rotation=90, fontsize=8)
 
@@ -274,7 +274,7 @@ def draw_room(room_l, room_w, front_wall_m, side_wall_m, listening_distance_m, s
                 xytext=(right_x, speaker_y - 0.25),
                 arrowprops=dict(arrowstyle="<->", color="#536b80", lw=1))
     ax.text(room_w / 2, speaker_y - 0.29, f"Speaker separation: {right_x-left_x:.2f} m",
-            ha="center", va="top", fontsize=7, color="#34495e")
+            ha="center", va="top", fontsize=7, color="#b4c7d6")
 
     ax.set_xlabel("Room width (m)")
     ax.set_ylabel("Room length (m)")
