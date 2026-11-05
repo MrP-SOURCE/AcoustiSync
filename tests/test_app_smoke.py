@@ -188,3 +188,28 @@ def test_car_enclosure_warns_when_straight_port_exceeds_box_depth():
 
     assert not app.exception
     assert any("straight port is longer" in item.value for item in app.warning)
+
+
+
+@pytest.mark.parametrize(
+    "room_l, front_clearance, listening_distance",
+    [
+        (2.0, 2.0, 8.0),
+        (2.0, 0.05, 1.0),
+        (5.0, 0.45, 2.5),
+        (20.0, 2.0, 8.0),
+    ],
+)
+def test_listener_position_stays_inside_room(
+    room_l, front_clearance, listening_distance
+):
+    from app import calculate_listener_position
+
+    speaker_y, listener_y, requested_listener_y = calculate_listener_position(
+        room_l, front_clearance, listening_distance
+    )
+
+    assert 0.12 <= speaker_y <= room_l - 0.90
+    assert speaker_y + 0.35 <= listener_y <= room_l - 0.45
+    if requested_listener_y > room_l - 0.45:
+        assert listener_y == pytest.approx(room_l - 0.45)
