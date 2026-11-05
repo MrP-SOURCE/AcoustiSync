@@ -571,6 +571,8 @@ else:
             qts = st.number_input("Qts", .1, 1.5, .42, .01)
             vas = st.number_input("Vas (litres)", 1.0, 1000.0, 50.0, 1.0)
             xmax = st.number_input("Xmax (mm, one-way)", 1.0, 40.0, 12.0, .5)
+            driver_disp = st.number_input("Driver displacement (litres)", 0.0, 20.0, 1.0, .1)
+            brace_disp = st.number_input("Bracing displacement (litres)", 0.0, 20.0, .5, .1)
             target_fb = st.number_input("Target tuning Fb (Hz)", 20.0, 50.0, 32.0, .5)
             port_d = st.number_input("Round port diameter (cm)", 5.0, 18.0, 10.0, .5)
         show_equipment_visual("subwoofer", model, "Premium reference visual for the selected car subwoofer category. Use exact manufacturer specifications for calculations.")
@@ -579,7 +581,9 @@ else:
             net = result["vb_l"]
             area = 3.14159 * (port_d/2)**2
             length = port_length_cm(area, net, target_fb)
-            volume_result = gross_enclosure_volume_l(net, 1.5, 0.0, area, length)
+            volume_result = gross_enclosure_volume_l(
+                net, driver_disp, brace_disp, area, length
+            )
             port_displacement = volume_result["port_displacement_l"]
             gross = volume_result["gross_volume_l"]
             max_l = trunk_l/100
@@ -592,7 +596,12 @@ else:
                 show_equipment_visual("sealed_box", f"{model} · sealed concept", "Conceptual sealed enclosure. This is a visual reference, not a cut-ready design.")
             with box_right:
                 show_equipment_visual("ported_box", f"{model} · ported concept", "Conceptual ported enclosure with visible port opening. Dimensions are calculated separately below.")
-            st.write(f"**Estimated usable box space: {net:.1f} litres.** Including the 1.5-litre driver/internal-parts allowance and approximately {port_displacement:.2f} litres of port displacement gives an estimated gross requirement of {gross:.1f} litres.")
+            st.write(
+                f"**Estimated usable box space: {net:.1f} litres.** Including "
+                f"{driver_disp:.1f} L driver displacement, {brace_disp:.1f} L bracing "
+                f"displacement and approximately {port_displacement:.2f} L port "
+                f"displacement gives an estimated gross requirement of {gross:.1f} litres."
+            )
             st.write(f"**Port tube starting size: {port_d:.1f} cm diameter × {length:.1f} cm long**, estimated for your selected {target_fb:.1f} Hz target.")
             st.caption(f"The simplified driver model estimates a tuning point near {result['fb_hz']:.1f} Hz before applying your selected port target.")
             car_dimensions = rectangular_enclosure_dimensions(gross, 18.0)
