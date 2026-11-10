@@ -247,12 +247,11 @@ def test_ported_box_rejects_nonfinite_inputs(values):
 @pytest.mark.parametrize(
     "values",
     [
-        (float("nan"), 500.0, 12.0, 35.0, 50.0),
-        (100.0, float("inf"), 12.0, 35.0, 50.0),
-        (100.0, 500.0, float("nan"), 35.0, 50.0),
-        (100.0, 500.0, 12.0, float("inf"), 50.0),
-        (100.0, 500.0, 12.0, 35.0, float("nan")),
-        (0.0, 500.0, 12.0, 35.0, 50.0),
+        (float("nan"), 12.0, 35.0, 50.0),
+        (500.0, float("inf"), 35.0, 50.0),
+        (500.0, 12.0, float("nan"), 50.0),
+        (500.0, 12.0, 35.0, float("inf")),
+        (0.0, 12.0, 35.0, 50.0),
     ],
 )
 def test_port_velocity_rejects_nonfinite_or_nonpositive_inputs(values):
@@ -265,4 +264,4 @@ def test_port_velocity_rejects_nonfinite_or_nonpositive_inputs(values):
 def test_port_velocity_returns_positive_speed_for_valid_inputs():
     from acoustics import port_velocity
 
-    assert port_velocity(100.0, 500.0, 12.0, 35.0, 50.0) > 0
+    assert port_velocity(500.0, 12.0, 35.0, 50.0) > 0
