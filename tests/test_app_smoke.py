@@ -130,6 +130,7 @@ def test_car_enclosure_calculation_runs():
     assert "Port tube starting size" in rendered
     assert "Available rectangular envelope" in rendered
     assert "Suggested box size" in rendered
+    assert "Peak port air speed at Xmax" in rendered
     assert "1.0 L driver displacement" in rendered
     assert "0.5 L bracing displacement" in rendered
     # Streamlit exposes success/error callouts separately from markdown.
@@ -167,6 +168,7 @@ def test_home_diy_enclosure_renders_volume_and_port_outputs():
     assert "port displacement" in rendered
     assert "Suggested internal enclosure size" in rendered
     assert "Basic six-panel cut list" in rendered
+    assert "Peak port air speed at Xmax" in rendered
 
 
 def test_car_enclosure_rejects_box_that_exceeds_one_vehicle_dimension():
@@ -255,3 +257,5 @@ def test_car_enclosure_accepts_a_fitting_rotated_orientation():
 
     assert not app.exception
     assert any("fits the entered rectangular envelope" in item.value for item in app.success)
+    rendered = "\\n".join(item.value for item in app.markdown)
+    assert "Suggested box size (18 mm panels)" in rendered
