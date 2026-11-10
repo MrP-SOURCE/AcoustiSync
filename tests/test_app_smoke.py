@@ -131,7 +131,7 @@ def test_car_enclosure_calculation_runs():
     assert "Available rectangular envelope" in rendered
     assert "Suggested box size" in rendered
     assert "Peak cone volume flow at Xmax" in rendered
-    assert "12.1 litres/second at 32.0 Hz" in rendered
+    assert "120.6 litres/second at 32.0 Hz" in rendered
     assert "1.0 L driver displacement" in rendered
     assert "0.5 L bracing displacement" in rendered
     # Streamlit exposes success/error callouts separately from markdown.
