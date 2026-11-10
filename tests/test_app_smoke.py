@@ -219,6 +219,23 @@ def test_listener_position_stays_inside_room(
     if requested_listener_y > room_l - 0.45:
         assert listener_y == pytest.approx(room_l - 0.45)
 
+def test_car_enclosure_uses_editable_panel_thickness():
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    app.radio[0].set_value("CAR AUDIO").run()
+    next(
+        item for item in app.number_input
+        if item.label == "Enclosure panel thickness (mm)"
+    ).set_value(12.0)
+    next(
+        item for item in app.button
+        if item.label == "Calculate car enclosure"
+    ).click().run()
+
+    assert not app.exception
+    rendered = "\\n".join(item.value for item in app.markdown)
+    assert "Suggested box size (12 mm panels)" in rendered
+
+
 def test_car_enclosure_uses_editable_driver_and_bracing_displacement():
     app = AppTest.from_file(APP_PATH, default_timeout=15).run()
     app.radio[0].set_value("CAR AUDIO").run()
