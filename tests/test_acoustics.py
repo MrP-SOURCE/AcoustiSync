@@ -248,34 +248,30 @@ def test_ported_box_rejects_nonfinite_inputs(values):
 @pytest.mark.parametrize(
     "values",
     [
-        (float("nan"), 12.0, 35.0, 50.0),
-        (500.0, float("inf"), 35.0, 50.0),
-        (500.0, 12.0, float("nan"), 50.0),
-        (500.0, 12.0, 35.0, float("inf")),
-        (0.0, 12.0, 35.0, 50.0),
+        (float("nan"), 12.0, 35.0),
+        (500.0, float("inf"), 35.0),
+        (500.0, 12.0, float("nan")),
+        (0.0, 12.0, 35.0),
     ],
 )
-def test_port_velocity_rejects_nonfinite_or_nonpositive_inputs(values):
-    from acoustics import port_velocity
+def test_cone_volume_velocity_rejects_nonfinite_or_nonpositive_inputs(values):
+    from acoustics import cone_volume_velocity_m3_s
 
     with pytest.raises(ValueError):
-        port_velocity(*values)
+        cone_volume_velocity_m3_s(*values)
 
 
-def test_port_velocity_returns_positive_speed_for_valid_inputs():
-    from acoustics import port_velocity
+def test_cone_volume_velocity_returns_positive_flow_for_valid_inputs():
+    from acoustics import cone_volume_velocity_m3_s
 
-    assert port_velocity(500.0, 12.0, 35.0, 50.0) > 0
+    assert cone_volume_velocity_m3_s(500.0, 12.0, 35.0) > 0
 
 
-def test_port_velocity_matches_peak_xmax_volume_velocity():
-    from acoustics import port_velocity
+def test_cone_volume_velocity_matches_peak_xmax_formula():
+    from acoustics import cone_volume_velocity_m3_s
 
-    expected = (
-        2 * math.pi * 35.0 * (500.0 * 1e-4) * (12.0 * 1e-3)
-        / (50.0 * 1e-4)
-    )
-    assert port_velocity(500.0, 12.0, 35.0, 50.0) == pytest.approx(expected)
+    expected = 2 * math.pi * 35.0 * (500.0 * 1e-4) * (12.0 * 1e-3)
+    assert cone_volume_velocity_m3_s(500.0, 12.0, 35.0) == pytest.approx(expected)
 
 
 
