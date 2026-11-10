@@ -5,7 +5,7 @@ from acoustics import (
     wavelength, room_axial_modes, sabine_rt60, estimate_sealed_box, estimate_ported_box,
     port_length_cm, port_velocity, placement_guidance, lookup_driver,
     gross_enclosure_volume_l, rectangular_enclosure_dimensions,
-    round_port_end_clearance_cm
+    round_port_end_clearance_cm, enclosure_fit_orientations
 )
 
 st.set_page_config(page_title="AcoustiSync", page_icon="🔊", layout="wide")
@@ -575,6 +575,7 @@ else:
             brace_disp = st.number_input("Bracing displacement (litres)", 0.0, 20.0, .5, .1)
             target_fb = st.number_input("Target tuning Fb (Hz)", 20.0, 50.0, 32.0, .5)
             port_d = st.number_input("Round port diameter (cm)", 5.0, 18.0, 10.0, .5)
+            panel_thickness = st.number_input("Enclosure panel thickness (mm)", 9.0, 30.0, 18.0, 1.0)
         show_equipment_visual("subwoofer", model, "Premium reference visual for the selected car subwoofer category. Use exact manufacturer specifications for calculations.")
         if st.button("Calculate car enclosure", type="primary"):
             result = estimate_ported_box(fs, qts, vas)
@@ -604,7 +605,7 @@ else:
             )
             st.write(f"**Port tube starting size: {port_d:.1f} cm diameter × {length:.1f} cm long**, estimated for your selected {target_fb:.1f} Hz target.")
             st.caption(f"The simplified driver model estimates a tuning point near {result['fb_hz']:.1f} Hz before applying your selected port target.")
-            car_dimensions = rectangular_enclosure_dimensions(gross, 18.0)
+            car_dimensions = rectangular_enclosure_dimensions(gross, panel_thickness)
             st.write(
                 f"**Suggested box size (18 mm panels):** "
                 f"{car_dimensions['external_width_cm']:.1f} W × "
@@ -612,15 +613,23 @@ else:
                 f"{car_dimensions['external_depth_cm']:.1f} D cm externally."
             )
             st.write(f"**Available rectangular envelope:** {trunk_l:.0f} W × {trunk_h:.0f} H × {trunk_d:.0f} D cm (about {fit_l:.1f} L before taper, trim and clearance).")
-            dimensions_fit = (
-                car_dimensions["external_width_cm"] <= trunk_l
-                and car_dimensions["external_height_cm"] <= trunk_h
-                and car_dimensions["external_depth_cm"] <= trunk_d
+            fitting_orientations = enclosure_fit_orientations(
+                (
+                    car_dimensions["external_width_cm"],
+                    car_dimensions["external_height_cm"],
+                    car_dimensions["external_depth_cm"],
+                ),
+                (trunk_l, trunk_h, trunk_d),
             )
-            if not dimensions_fit:
-                st.error("The suggested rectangular box exceeds at least one entered vehicle dimension. Reduce the design or remeasure the usable boot space.")
+            if not fitting_orientations:
+                st.error("The suggested box does not fit the entered rectangular envelope in any of its six orientations. Reduce the design or remeasure the usable boot space.")
             else:
-                st.success("The suggested rectangular box fits the entered rectangular envelope before allowing for trim, taper, bracing and installation clearance.")
+                st.success("The suggested box fits the entered rectangular envelope in at least one orientation.")
+                st.caption(
+                    "Fitting orientation (W × H × D): "
+                    + "; ".join(f"{w:.1f} × {h:.1f} × {d:.1f} cm" for w, h, d in fitting_orientations)
+                    + ". Check boot opening, taper, trim and installation clearance separately."
+                )
             port_end_clearance = round_port_end_clearance_cm(
                 car_dimensions["internal_depth_cm"], length
             )
