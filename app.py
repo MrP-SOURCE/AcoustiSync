@@ -461,6 +461,7 @@ if mode == "HOME AUDIO":
             qts = b.number_input("Qts", .1, 1.5, float(rec.get("Qts", .42)), .01)
             vas = c.number_input("Vas (litres)", 1.0, 1000.0, float(rec.get("Vas", 60.0)), 1.0)
             xmax = a.number_input("Xmax (mm, one-way)", 1.0, 40.0, float(rec.get("Xmax", 8.0)), .5)
+            sd = b.number_input("Effective cone area Sd (cm²)", 10.0, 2000.0, 500.0, 5.0)
             re = b.number_input("Re (ohms)", 1.0, 16.0, float(rec.get("Re", 3.6)), .1)
             wood = c.number_input("Panel thickness (mm)", 9.0, 30.0, 18.0, 1.0)
             driver_disp = a.number_input("Driver displacement (litres)", 0.0, 20.0, .8, .1)
@@ -502,7 +503,8 @@ if mode == "HOME AUDIO":
             st.write(f"**Port tube starting size: {port_d:.1f} cm inside diameter and approximately {length:.1f} cm long.**")
             st.caption("The port is the air tube in the box. Its size affects bass tuning. Final length may need adjustment for flares, bends and the actual box.")
             st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L including driver, bracing and approximately {port_displacement:.2f} L of port displacement.")
-            st.write(f"**Air velocity check:** requires amplifier power, Sd, and excursion model; not inferred from T/S values alone. Avoid assuming this port is quiet at high output.")
+            peak_velocity = port_velocity(sd, xmax, target_fb, area)
+            st.write(f"**Peak port air speed at Xmax:** approximately {peak_velocity:.1f} m/s at {target_fb:.1f} Hz. This is an excursion-limited screening estimate, not a full power/compression or noise prediction.")
             dimensions = rectangular_enclosure_dimensions(gross, wood)
             st.write(
                 f"**Suggested internal enclosure size:** "
@@ -571,6 +573,7 @@ else:
             qts = st.number_input("Qts", .1, 1.5, .42, .01)
             vas = st.number_input("Vas (litres)", 1.0, 1000.0, 50.0, 1.0)
             xmax = st.number_input("Xmax (mm, one-way)", 1.0, 40.0, 12.0, .5)
+            sd = st.number_input("Effective cone area Sd (cm²)", 10.0, 2000.0, 500.0, 5.0)
             driver_disp = st.number_input("Driver displacement (litres)", 0.0, 20.0, 1.0, .1)
             brace_disp = st.number_input("Bracing displacement (litres)", 0.0, 20.0, .5, .1)
             target_fb = st.number_input("Target tuning Fb (Hz)", 20.0, 50.0, 32.0, .5)
@@ -604,10 +607,12 @@ else:
                 f"displacement gives an estimated gross requirement of {gross:.1f} litres."
             )
             st.write(f"**Port tube starting size: {port_d:.1f} cm diameter × {length:.1f} cm long**, estimated for your selected {target_fb:.1f} Hz target.")
+            peak_velocity = port_velocity(sd, xmax, target_fb, area)
+            st.write(f"**Peak port air speed at Xmax:** approximately {peak_velocity:.1f} m/s at {target_fb:.1f} Hz. This is an excursion-limited screening estimate, not a full power/compression or noise prediction.")
             st.caption(f"The simplified driver model estimates a tuning point near {result['fb_hz']:.1f} Hz before applying your selected port target.")
             car_dimensions = rectangular_enclosure_dimensions(gross, panel_thickness)
             st.write(
-                f"**Suggested box size (18 mm panels):** "
+                f"**Suggested box size ({panel_thickness:.0f} mm panels):** "
                 f"{car_dimensions['external_width_cm']:.1f} W × "
                 f"{car_dimensions['external_height_cm']:.1f} H × "
                 f"{car_dimensions['external_depth_cm']:.1f} D cm externally."
@@ -654,7 +659,7 @@ else:
             st.write("**Orientation starting point:**")
             st.write({"Hatchback":"Subwoofer and port rear-facing is a common starting experiment; test rear-facing versus upward-facing.","Sedan":"Rear-facing can work, but cabin coupling through the rear seat/pass-through strongly affects results.","SUV":"Rear-facing or upward-facing; compare response at the driver seat.","Truck":"Fitment and seat/wall coupling dominate; test the available orientations."}[vehicle])
             st.info("Cabin gain is vehicle-specific and cannot be accurately calculated from body style alone. No automatic +12 dB/octave correction is applied: measure in-car response or use a measured transfer function before EQ.")
-            st.warning("Port air speed/chuffing cannot be checked reliably without amplifier power, driver Sd, excursion and a defined signal/model. Use a flare and adequate port area; verify with modelling and measurement.")
+            st.caption("Port air speed is screened at one-way Xmax using the entered Sd and target frequency. Real port velocity depends on the enclosure response, signal, power, compression and losses; use full modelling and measurement before finalising the port.")
     else:
         st.subheader("Car component placement")
         st.caption("Choose the options that match your vehicle and speaker installation.")
