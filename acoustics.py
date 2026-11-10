@@ -147,6 +147,24 @@ def rectangular_enclosure_dimensions(
     }
 
 
+def enclosure_fit_orientations(
+    box_dimensions_cm: tuple[float, float, float],
+    available_dimensions_cm: tuple[float, float, float],
+) -> list[tuple[float, float, float]]:
+    """Return box dimension permutations that fit a rectangular vehicle envelope."""
+    if len(box_dimensions_cm) != 3 or len(available_dimensions_cm) != 3:
+        raise ValueError("Box and available envelope must each have three dimensions.")
+    if not all(math.isfinite(value) for value in box_dimensions_cm + available_dimensions_cm):
+        raise ValueError("Box and available dimensions must be finite.")
+    if min(box_dimensions_cm) <= 0 or min(available_dimensions_cm) <= 0:
+        raise ValueError("Box and available dimensions must be positive.")
+    import itertools
+    return [
+        orientation for orientation in sorted(set(itertools.permutations(box_dimensions_cm)))
+        if all(box_dim <= space_dim for box_dim, space_dim in zip(orientation, available_dimensions_cm))
+    ]
+
+
 def port_velocity(sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
     """Estimate peak port air speed at one-way Xmax; this is not power-dependent."""
     values = (sd_cm2, xmax_mm, freq_hz, port_area_cm2)
