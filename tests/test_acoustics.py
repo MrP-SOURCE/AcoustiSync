@@ -5,6 +5,7 @@ import pytest
 from acoustics import (
     estimate_ported_box,
     estimate_sealed_box,
+    enclosure_fit_orientations,
     gross_enclosure_volume_l,
     rectangular_enclosure_dimensions,
     lookup_driver,
@@ -275,3 +276,27 @@ def test_port_velocity_matches_peak_xmax_volume_velocity():
         / (50.0 * 1e-4)
     )
     assert port_velocity(500.0, 12.0, 35.0, 50.0) == pytest.approx(expected)
+
+
+
+def test_enclosure_fit_finds_rotated_orientation_when_default_does_not_fit():
+    fits = enclosure_fit_orientations((80.0, 40.0, 30.0), (45.0, 85.0, 35.0))
+    assert (40.0, 80.0, 30.0) in fits
+    assert (80.0, 40.0, 30.0) not in fits
+
+
+def test_enclosure_fit_returns_empty_when_no_orientation_fits():
+    assert enclosure_fit_orientations((80.0, 40.0, 30.0), (35.0, 45.0, 85.0)) == []
+
+
+@pytest.mark.parametrize(
+    "box, envelope",
+    [
+        ((80.0, 40.0), (90.0, 50.0, 40.0)),
+        ((80.0, 40.0, float("inf")), (90.0, 50.0, 40.0)),
+        ((80.0, 40.0, 30.0), (90.0, 0.0, 40.0)),
+    ],
+)
+def test_enclosure_fit_rejects_invalid_dimensions(box, envelope):
+    with pytest.raises(ValueError):
+        enclosure_fit_orientations(box, envelope)
