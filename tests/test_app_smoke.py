@@ -178,7 +178,7 @@ def test_car_enclosure_rejects_box_that_exceeds_one_vehicle_dimension():
 
     assert not app.exception
     assert any(
-        "exceeds at least one entered vehicle dimension" in item.value
+        "does not fit the entered rectangular envelope in any of its six orientations" in item.value
         for item in app.error
     )
 
@@ -235,3 +235,23 @@ def test_car_enclosure_uses_editable_driver_and_bracing_displacement():
     assert not app.exception
     rendered = "\\n".join(item.value for item in app.markdown)
     assert "2.0 L driver displacement, 1.0 L bracing" in rendered
+
+
+
+def test_car_enclosure_accepts_a_fitting_rotated_orientation():
+    app = AppTest.from_file(APP_PATH, default_timeout=15).run()
+    app.radio[0].set_value("CAR AUDIO").run()
+    for label, value in [
+        ("Available width (cm)", 32.0),
+        ("Available height (cm)", 90.0),
+        ("Available depth (cm)", 40.0),
+    ]:
+        next(item for item in app.number_input if item.label == label).set_value(value)
+    app.run()
+    next(
+        item for item in app.button
+        if item.label == "Calculate car enclosure"
+    ).click().run()
+
+    assert not app.exception
+    assert any("fits the entered rectangular envelope" in item.value for item in app.success)
