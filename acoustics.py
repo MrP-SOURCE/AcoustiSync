@@ -147,14 +147,14 @@ def rectangular_enclosure_dimensions(
     }
 
 
-def port_velocity(power_w: float, sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
-    """Very simplified sinusoidal volume-velocity estimate; needs real driver parameters."""
-    values = (power_w, sd_cm2, xmax_mm, freq_hz, port_area_cm2)
+def port_velocity(sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
+    """Estimate peak port air speed at one-way Xmax; this is not power-dependent."""
+    values = (sd_cm2, xmax_mm, freq_hz, port_area_cm2)
     if not all(math.isfinite(value) for value in values):
-        raise ValueError("Power, cone area, excursion, frequency and port area must be finite.")
+        raise ValueError("Cone area, excursion, frequency and port area must be finite.")
     if min(values) <= 0:
         raise ValueError("All inputs must be positive.")
-    # Cone peak displacement volume (m^3), then peak velocity through port.
+    # Peak sinusoidal volume velocity at the driver's one-way Xmax.
     displacement_m3 = sd_cm2 * 1e-4 * xmax_mm * 1e-3
     volume_velocity_m3_s = 2 * math.pi * freq_hz * displacement_m3
     return volume_velocity_m3_s / (port_area_cm2 * 1e-4)
