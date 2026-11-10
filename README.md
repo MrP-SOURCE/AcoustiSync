@@ -6,7 +6,7 @@ Streamlit-based audio setup assistant for home and car audio.
 
 - Home audio: finished-speaker placement guidance, ideal axial room-mode frequency estimates, an illustrative 3D axial-mode pressure field, and a room layout diagram.
 - Home acoustics: Sabine RT60 screening estimate using room dimensions, selected wall/floor/ceiling finishes, and an adjustable furnishings absorption allowance.
-- Home DIY: preliminary sealed and ported enclosure screening calculations, round-port length and excursion-limited port-air-speed estimates, and internal/gross volume guidance with a basic panel cut list.
+- Home DIY: preliminary sealed and ported enclosure screening calculations, round-port length and peak cone-volume-flow estimates, and internal/gross volume guidance with a basic panel cut list.
 - Car audio: preliminary subwoofer enclosure sizing against a rectangular boot envelope, checking all six box orientations, with editable panel thickness and displacement allowances, port-air-speed screening and round-port clearance warnings, plus component-speaker staging guidance.
 
 ## Run locally
@@ -32,7 +32,7 @@ GitHub Actions runs the acoustic calculation tests and Streamlit workflow smoke 
 
 This application is a planning aid, not professional design sign-off. RT60 uses broad, assumed mid-frequency absorption coefficients; actual absorption varies by frequency, material construction, installation, furnishings and room contents. The 3D room-mode view is an idealised axial pressure field, not a measured or full-wave room simulation.
 
-Driver catalogue entries are illustrative and are not verified manufacturer specifications. Round-port length uses an equivalent diameter derived from the entered port area and a conventional end-correction estimate; flares, slot ports, port folding and enclosure-specific end effects still require dedicated modelling. The displayed port-air-speed figure is a simplified peak estimate at one-way Xmax using Sd and the selected tuning frequency; it is not a full amplifier-power, compression, noise or frequency-response simulation. Enclosure estimates require confirmation against the exact driver's datasheet, full Thiele/Small parameters, physical fitment, and measurement. Room and vehicle acoustic behaviour cannot be fully predicted from the current inputs.
+Driver catalogue entries are illustrative and are not verified manufacturer specifications. Round-port length uses an equivalent diameter derived from the entered port area and a conventional end-correction estimate; flares, slot ports, port folding and enclosure-specific end effects still require dedicated modelling. The displayed cone-volume-flow figure is a displacement-flow estimate at one-way Xmax using Sd and the selected frequency; it is not a port-air-speed, amplifier-power, compression, noise or frequency-response simulation. Enclosure estimates require confirmation against the exact driver's datasheet, full Thiele/Small parameters, physical fitment, and measurement. Room and vehicle acoustic behaviour cannot be fully predicted from the current inputs.
 
 Do not cut enclosure panels or apply aggressive EQ solely from these preliminary estimates.
 
