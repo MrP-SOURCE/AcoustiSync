@@ -165,17 +165,15 @@ def enclosure_fit_orientations(
     ]
 
 
-def port_velocity(sd_cm2: float, xmax_mm: float, freq_hz: float, port_area_cm2: float):
-    """Estimate peak port air speed at one-way Xmax; this is not power-dependent."""
-    values = (sd_cm2, xmax_mm, freq_hz, port_area_cm2)
+def cone_volume_velocity_m3_s(sd_cm2: float, xmax_mm: float, freq_hz: float):
+    """Estimate peak cone volume velocity at one-way Xmax, in cubic metres per second."""
+    values = (sd_cm2, xmax_mm, freq_hz)
     if not all(math.isfinite(value) for value in values):
-        raise ValueError("Cone area, excursion, frequency and port area must be finite.")
+        raise ValueError("Cone area, excursion and frequency must be finite.")
     if min(values) <= 0:
         raise ValueError("All inputs must be positive.")
-    # Peak sinusoidal volume velocity at the driver's one-way Xmax.
     displacement_m3 = sd_cm2 * 1e-4 * xmax_mm * 1e-3
-    volume_velocity_m3_s = 2 * math.pi * freq_hz * displacement_m3
-    return volume_velocity_m3_s / (port_area_cm2 * 1e-4)
+    return 2 * math.pi * freq_hz * displacement_m3
 
 def placement_guidance(front_wall_m, side_wall_m, listening_distance_m, compromised, use_case):
     front = max(0.2, front_wall_m)
