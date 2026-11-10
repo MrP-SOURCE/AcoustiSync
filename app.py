@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from acoustics import (
     wavelength, room_axial_modes, sabine_rt60, estimate_sealed_box, estimate_ported_box,
-    port_length_cm, port_velocity, placement_guidance, lookup_driver,
+    port_length_cm, cone_volume_velocity_m3_s, placement_guidance, lookup_driver,
     gross_enclosure_volume_l, rectangular_enclosure_dimensions,
     round_port_end_clearance_cm, enclosure_fit_orientations
 )
@@ -503,8 +503,8 @@ if mode == "HOME AUDIO":
             st.write(f"**Port tube starting size: {port_d:.1f} cm inside diameter and approximately {length:.1f} cm long.**")
             st.caption("The port is the air tube in the box. Its size affects bass tuning. Final length may need adjustment for flares, bends and the actual box.")
             st.write(f"**Volume:** {net:.1f} L net; estimated gross internal volume {gross:.1f} L including driver, bracing and approximately {port_displacement:.2f} L of port displacement.")
-            peak_velocity = port_velocity(sd, xmax, target_fb, area)
-            st.write(f"**Peak port air speed at Xmax:** approximately {peak_velocity:.1f} m/s at {target_fb:.1f} Hz. This is an excursion-limited screening estimate, not a full power/compression or noise prediction.")
+            cone_flow_l_s = cone_volume_velocity_m3_s(sd, xmax, target_fb) * 1000
+            st.write(f"**Peak cone volume flow at Xmax:** approximately {cone_flow_l_s:.1f} litres/second at {target_fb:.1f} Hz. This describes driver displacement flow only; it does not predict port air speed.")
             dimensions = rectangular_enclosure_dimensions(gross, wood)
             st.write(
                 f"**Suggested internal enclosure size:** "
@@ -607,8 +607,8 @@ else:
                 f"displacement gives an estimated gross requirement of {gross:.1f} litres."
             )
             st.write(f"**Port tube starting size: {port_d:.1f} cm diameter × {length:.1f} cm long**, estimated for your selected {target_fb:.1f} Hz target.")
-            peak_velocity = port_velocity(sd, xmax, target_fb, area)
-            st.write(f"**Peak port air speed at Xmax:** approximately {peak_velocity:.1f} m/s at {target_fb:.1f} Hz. This is an excursion-limited screening estimate, not a full power/compression or noise prediction.")
+            cone_flow_l_s = cone_volume_velocity_m3_s(sd, xmax, target_fb) * 1000
+            st.write(f"**Peak cone volume flow at Xmax:** approximately {cone_flow_l_s:.1f} litres/second at {target_fb:.1f} Hz. This describes driver displacement flow only; it does not predict port air speed.")
             st.caption(f"The simplified driver model estimates a tuning point near {result['fb_hz']:.1f} Hz before applying your selected port target.")
             car_dimensions = rectangular_enclosure_dimensions(gross, panel_thickness)
             st.write(
@@ -659,7 +659,7 @@ else:
             st.write("**Orientation starting point:**")
             st.write({"Hatchback":"Subwoofer and port rear-facing is a common starting experiment; test rear-facing versus upward-facing.","Sedan":"Rear-facing can work, but cabin coupling through the rear seat/pass-through strongly affects results.","SUV":"Rear-facing or upward-facing; compare response at the driver seat.","Truck":"Fitment and seat/wall coupling dominate; test the available orientations."}[vehicle])
             st.info("Cabin gain is vehicle-specific and cannot be accurately calculated from body style alone. No automatic +12 dB/octave correction is applied: measure in-car response or use a measured transfer function before EQ.")
-            st.caption("Port air speed is screened at one-way Xmax using the entered Sd and target frequency. Real port velocity depends on the enclosure response, signal, power, compression and losses; use full modelling and measurement before finalising the port.")
+            st.caption("The cone-flow figure is not a port-velocity or chuffing check. Port air speed depends on the complete vented-box response, signal, power, compression and losses; use a dedicated enclosure model and measurement before finalising the port.")
     else:
         st.subheader("Car component placement")
         st.caption("Choose the options that match your vehicle and speaker installation.")
