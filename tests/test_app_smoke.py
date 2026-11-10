@@ -259,3 +259,4 @@ def test_car_enclosure_accepts_a_fitting_rotated_orientation():
     assert any("fits the entered rectangular envelope" in item.value for item in app.success)
     rendered = "\\n".join(item.value for item in app.markdown)
     assert "Suggested box size (18 mm panels)" in rendered
+    assert "Peak port air speed at Xmax" in rendered
